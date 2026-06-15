@@ -112,7 +112,7 @@ AbstractMainPage {
             anchors.fill: parent
             anchors.leftMargin: Utils.getSizeWithScreenRatio(45)
             clip: true
-            initialItem: historyListItem
+            initialItem: newCallItem
             focus: true
             onActiveFocusChanged: if (activeFocus) {
                 currentItem.forceActiveFocus()
@@ -336,9 +336,9 @@ AbstractMainPage {
             width: parent?.width
             height: parent?.height
             Control.StackView.onActivated: {
+                // Branded NursePhone: surface the dial pad by default on the New Call view
                 if(!numericPadPopupItem.visible){
-		            const focusReason = FocusNavigator.doesLastFocusWasKeyboard() ? Qt.TabFocusReason : Qt.OtherFocusReason
-                   callContactsList.forceActiveFocus(focusReason)
+                    numericPadPopupItem.open()
                 }
             }
             ColumnLayout {

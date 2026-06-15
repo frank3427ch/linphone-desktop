@@ -21,7 +21,9 @@ AbstractWindow {
     }
 
 	color: DefaultStyle.grey_0
-    minimumWidth: Utils.getSizeWithScreenRatio(1020)
+    // Narrowed for the dialer-focused branded build (was 1020).
+    width: Utils.getSizeWithScreenRatio(560)
+    minimumWidth: Utils.getSizeWithScreenRatio(520)
     minimumHeight: Utils.getSizeWithScreenRatio(700)
 
 	signal callCreated()

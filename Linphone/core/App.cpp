@@ -306,7 +306,12 @@ App::App(int &argc, char *argv[])
 
 	// If not OpenGL, createRender is never call.
 	QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
+#ifndef __APPLE__
+	// On macOS the Dock/app icon must come from the bundle .icns (transparent,
+	// branded). Calling setWindowIcon here overrides it with the embedded
+	// resource and breaks the rounded/transparent look, so skip it on macOS.
 	setWindowIcon(QIcon(Constants::WindowIconPath));
+#endif
 	initFonts();
 	//-------------------
 	mOIDCRefreshTimer.setInterval(1000);

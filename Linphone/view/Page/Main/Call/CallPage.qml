@@ -16,12 +16,16 @@ AbstractMainPage {
     emptyListText: qsTr("call_history_empty_title")
     newItemIconSource: AppIcons.newCall
 
+    // Branded NursePhone: dialer-focused. Hide the right detail panel so the
+    // Phone screen is just the dial pad and the window can be narrow.
+    showRightPanel: false
+
     property var selectedRowHistoryGui
     signal listViewUpdated
     signal goToCallForwardSettings
 
     onVisibleChanged: if (!visible) {
-        goToCallHistory()
+        goToNewCall()
     }
 
     /**

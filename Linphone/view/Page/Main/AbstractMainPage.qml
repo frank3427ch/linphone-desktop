@@ -17,6 +17,9 @@ FocusScope {
 	property string newItemIconSource
 	property string emptyListText
 	property bool showDefaultItem: true
+	// When false, the right detail panel is hidden and the left panel fills the
+	// width (used by the dialer page for a narrow, single-panel screen).
+	property bool showRightPanel: true
 	property color rightPanelColor: DefaultStyle.grey_100
 	property alias leftPanelContent: leftPanel.children
 	property alias rightPanelStackView: rightPanelStackView
@@ -37,14 +40,15 @@ FocusScope {
 		ColumnLayout {
 			id: leftPanel
 			spacing:0
-			// Control.SplitView.fillWidth:false
+			Control.SplitView.fillWidth: !mainItem.showRightPanel
 			Control.SplitView.fillHeight: true
 			Control.SplitView.preferredWidth: Utils.getSizeWithScreenRatio(404)
     		Control.SplitView.minimumWidth: Utils.getSizeWithScreenRatio(200)
-    		Control.SplitView.maximumWidth: Utils.getSizeWithScreenRatio(500)
+    		Control.SplitView.maximumWidth: mainItem.showRightPanel ? Utils.getSizeWithScreenRatio(500) : Number.POSITIVE_INFINITY
 		}
 		Rectangle {
 			id: rightPanel
+			visible: mainItem.showRightPanel
 			clip: true
 			color: mainItem.rightPanelColor
 			Control.SplitView.fillWidth: true

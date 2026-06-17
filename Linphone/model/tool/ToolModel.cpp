@@ -403,17 +403,34 @@ std::shared_ptr<linphone::Conference> ToolModel::createConference(QString subjec
 	auto account = core->getDefaultAccount();
 	if (!account) {
 		qWarning() << "No default account found, can't create group call";
-		*message = tr("group_call_error_no_account");
+		if (message) *message = tr("group_call_error_no_account");
 		return nullptr;
 	}
 	conferenceParams->setAccount(account);
 	conferenceParams->setSubject(Utils::appStringToCoreString(subject));
 
-	auto createEndToEnd = SettingsModel::getInstance()->getCreateEndToEndEncryptedMeetingsAndGroupCalls();
-	conferenceParams->setSecurityLevel(createEndToEnd ? linphone::Conference::SecurityLevel::EndToEnd
-	                                                  : linphone::Conference::SecurityLevel::PointToPoint);
-
-	conferenceParams->enableChat(true);
+	// Decide whether the account can host a server-side (Flexisip) conference, or
+	// whether we must fall back to a purely local, client-side mixed conference.
+	// Group chat and security levels are server-only features; if there is no
+	// conference factory configured, requesting them makes conference creation
+	// fail and merging calls silently degrades to "one call on hold".
+	auto avFactoryUri = account->getParams()->getAudioVideoConferenceFactoryAddress();
+	if (avFactoryUri) {
+		auto createEndToEnd = SettingsModel::getInstance()->getCreateEndToEndEncryptedMeetingsAndGroupCalls();
+		conferenceParams->setSecurityLevel(createEndToEnd ? linphone::Conference::SecurityLevel::EndToEnd
+		                                                  : linphone::Conference::SecurityLevel::PointToPoint);
+		conferenceParams->enableChat(true);
+	} else {
+		// No conference factory on the account: host the conference locally with
+		// client-side audio/video mixing so 3-way calls work against a plain SIP
+		// server. setConferenceFactoryAddress(nullptr) forces a local conference;
+		// chat and encrypted security levels are unavailable in that mode.
+		qInfo() << "No conference factory on default account; creating a local (client-mixed) conference";
+		conferenceParams->setConferenceFactoryAddress(nullptr);
+		conferenceParams->enableLocalParticipant(true);
+		conferenceParams->enableChat(false);
+		conferenceParams->setSecurityLevel(linphone::Conference::SecurityLevel::None);
+	}
 
 	return core->createConferenceWithParams(conferenceParams);
 }

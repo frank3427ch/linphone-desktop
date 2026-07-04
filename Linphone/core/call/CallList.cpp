@@ -93,18 +93,26 @@ void CallList::setSelf(QSharedPointer<CallList> me) {
 				}
 			}
 
-			auto currentCall = CoreModel::getInstance()->getCore()->getCurrentCall();
+			// Keep the merged conference audio-only unless a call already has video,
+			// so merging plain audio calls doesn't force a video renegotiation.
 			bool enablingVideo = false;
-			if (currentCall) enablingVideo = currentCall->getCurrentParams()->videoEnabled();
+			for (auto call : currentCalls) {
+				if (call->getCurrentParams()->videoEnabled()) {
+					enablingVideo = true;
+					break;
+				}
+			}
+
 			if (!conference) {
-				auto audioVideoConfFactoryUri =
-				    core->getDefaultAccount()->getParams()->getAudioVideoConferenceFactoryAddress();
-				QString subject = audioVideoConfFactoryUri
+				auto account = core->getDefaultAccount();
+				bool hasAudioVideoConfFactory =
+				    account && account->getParams()->getAudioVideoConferenceFactoryAddress() != nullptr;
+				QString subject = hasAudioVideoConfFactory
 				                      //: Remote group call
 				                      ? tr("remote_group_call")
 				                      //: "Local group call"
 				                      : tr("local_group_call");
-				auto conference = ToolModel::createConference(subject, nullptr);
+				conference = ToolModel::createConference(subject, nullptr, enablingVideo);
 				if (!conference) {
 					lWarning() << log().arg("Failed to merge calls");
 					mModelConnection->invokeToCore([] {
@@ -113,10 +121,16 @@ void CallList::setSelf(QSharedPointer<CallList> me) {
 						                            tr("info_popup_merge_calls_failed_message"), false);
 					});
 					return;
-				} else {
-					conference->addParticipants(currentCalls);
 				}
 			}
+
+			// Add every call that is not already part of the conference, so merging
+			// also grows an existing conference instead of doing nothing.
+			std::list<std::shared_ptr<linphone::Call>> callsToAdd;
+			for (auto call : currentCalls) {
+				if (call->getConference() != conference) callsToAdd.push_back(call);
+			}
+			if (!callsToAdd.empty()) conference->addParticipants(callsToAdd);
 			// emit lUpdate();
 		});
 	});

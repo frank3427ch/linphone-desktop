@@ -396,10 +396,10 @@ bool ToolModel::createCall(const QString &sipAddress,
 	*/
 }
 
-std::shared_ptr<linphone::Conference> ToolModel::createConference(QString subject, QString *message) {
+std::shared_ptr<linphone::Conference> ToolModel::createConference(QString subject, QString *message, bool enableVideo) {
 	auto core = CoreModel::getInstance()->getCore();
 	auto conferenceParams = core->createConferenceParams(nullptr);
-	conferenceParams->enableVideo(true);
+	conferenceParams->enableVideo(enableVideo);
 	auto account = core->getDefaultAccount();
 	if (!account) {
 		qWarning() << "No default account found, can't create group call";

@@ -63,13 +63,13 @@ install(TARGETS ${TARGET_NAME}
 
 if(APPLE)
 	# The bundle target installs as ${EXECUTABLE_NAME}.app while every other component
-	# installs into ${APPLICATION_NAME}.app. When the two names differ (beyond case),
+	# installs into ${BUNDLE_NAME}.app. When the two names differ (beyond case),
 	# merge the bundle (executable + Info.plist) into the application tree.
-	string(TOLOWER "${APPLICATION_NAME}" _app_name_lower)
+	string(TOLOWER "${BUNDLE_NAME}" _app_name_lower)
 	string(TOLOWER "${EXECUTABLE_NAME}" _exe_name_lower)
 	if(NOT _app_name_lower STREQUAL _exe_name_lower)
 		install(CODE "
-			file(COPY \"${CMAKE_INSTALL_PREFIX}/${EXECUTABLE_NAME}.app/Contents\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/${APPLICATION_NAME}.app\")
+			file(COPY \"${CMAKE_INSTALL_PREFIX}/${EXECUTABLE_NAME}.app/Contents\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/${BUNDLE_NAME}.app\")
 			file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/${EXECUTABLE_NAME}.app\")
 		")
 	endif()
@@ -101,7 +101,7 @@ if(APPLE)
 	install(FILES ${SHARED_LIBRARIES} DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 	install(DIRECTORY "${LINPHONE_OUTPUT_DIR}/${CMAKE_INSTALL_DATAROOTDIR}/images" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}" USE_SOURCE_PERMISSIONS OPTIONAL)
 
-	file(GLOB SHARED_LIBRARIES "${CMAKE_BINARY_DIR}/cmake/install/macos/${APPLICATION_NAME}.app/Contents/Frameworks/lib*.dylib")
+	file(GLOB SHARED_LIBRARIES "${CMAKE_BINARY_DIR}/cmake/install/macos/${BUNDLE_NAME}.app/Contents/Frameworks/lib*.dylib")
 
 	foreach (LIBRARY ${SHARED_LIBRARIES})
 		get_filename_component(LIBRARY_FILENAME ${LIBRARY} NAME)
@@ -122,8 +122,8 @@ if(APPLE)
 	endif()
 	#Packaging is done by CPack in the cleanCPack.cmake file. But on mac, we need Qt files in .app
 	if(NOT ENABLE_APP_PACKAGING)
-		install(CODE "MESSAGE(\"MacDeploy install: execute_process(COMMAND ${DEPLOYQT_PROGRAM} ${APPLICATION_OUTPUT_DIR}/${APPLICATION_NAME}.app -qmldir=${LINPHONE_QML_DIR} -no-strip -verbose=0 -always-overwrite) \")")
-		install(CODE "execute_process(COMMAND ${DEPLOYQT_PROGRAM} ${APPLICATION_OUTPUT_DIR}/${APPLICATION_NAME}.app -qmldir=${LINPHONE_QML_DIR} -no-strip -verbose=0 -always-overwrite)")
+		install(CODE "MESSAGE(\"MacDeploy install: execute_process(COMMAND ${DEPLOYQT_PROGRAM} ${APPLICATION_OUTPUT_DIR}/${BUNDLE_NAME}.app -qmldir=${LINPHONE_QML_DIR} -no-strip -verbose=0 -always-overwrite) \")")
+		install(CODE "execute_process(COMMAND ${DEPLOYQT_PROGRAM} ${APPLICATION_OUTPUT_DIR}/${BUNDLE_NAME}.app -qmldir=${LINPHONE_QML_DIR} -no-strip -verbose=0 -always-overwrite)")
 	endif()
 elseif(WIN32)
 	set(BIN_ARCH "win32")

@@ -101,8 +101,11 @@ foreach(_FILE IN LISTS _BINARIES)
 		endif()
 	endif()
 endforeach()
+# The bundle folder is named without spaces (see CMakeLists.txt); users see
+# CFBundleDisplayName, which keeps the spaced application name.
+string(REPLACE " " "" LINPHONEAPP_BUNDLE_NAME "${LINPHONEAPP_APPLICATION_NAME}")
 
-set(_APP "${MAIN_INSTALL_DIR}/${LINPHONEAPP_APPLICATION_NAME}.app")
+set(_APP "${MAIN_INSTALL_DIR}/${LINPHONEAPP_BUNDLE_NAME}.app")
 set(_MAIN_EXE "${_APP}/Contents/MacOS/${LINPHONEAPP_EXECUTABLE_NAME}")
 
 file(REMOVE_RECURSE
@@ -128,7 +131,7 @@ if(LINPHONE_BUILDER_SIGNING_IDENTITY)
 		message(FATAL_ERROR "codesign --verify failed on ${_APP} (exit ${_VERIFY_RESULT})")
 	endif()
 else()
-	execute_process(COMMAND codesign --force --deep --sign - "${MAIN_INSTALL_DIR}/${LINPHONEAPP_APPLICATION_NAME}.app")#If not code signed, app can crash because of APPLE on "Code Signature Invalid".
+	execute_process(COMMAND codesign --force --deep --sign - "${_APP}")#If not code signed, app can crash because of APPLE on "Code Signature Invalid".
 endif()
 
 ################################
@@ -142,7 +145,7 @@ if(ENABLE_APP_PACKAGING)
 	file(REMOVE_RECURSE "${_DMG_STAGE}")
 	file(MAKE_DIRECTORY "${_DMG_STAGE}")
 	file(MAKE_DIRECTORY "${_PKG_DIR}")
-	execute_process(COMMAND ditto "${_APP}" "${_DMG_STAGE}/${LINPHONEAPP_APPLICATION_NAME}.app")
+	execute_process(COMMAND ditto "${_APP}" "${_DMG_STAGE}/${LINPHONEAPP_BUNDLE_NAME}.app")
 
 	set(_CPACK_CONFIG "${LINPHONEAPP_BUILD_DIR}/CPackConfig-macos-universal.cmake")
 	file(WRITE "${_CPACK_CONFIG}"

@@ -1,6 +1,8 @@
 set(APPLICATION_DESCRIPTION "A libre SIP client")
 set(APPLICATION_ID "com.belledonnecommunications.${LINPHONEAPP_EXECUTABLE_NAME}")
 set(APPLICATION_NAME ${LINPHONEAPP_APPLICATION_NAME})
+# Space-free variant used for .app folder paths (spaces break SDK Makefiles).
+string(REPLACE " " "" BUNDLE_NAME "${APPLICATION_NAME}")
 set(APPLICATION_URL "https://www.linphone.org")
 set(APPLICATION_VENDOR "Belledonne Communications")
 set(APPLICATION_LICENCE "GNU General Public License V3")

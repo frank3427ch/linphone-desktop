@@ -61,3 +61,7 @@ linphone62*.log
 *.cxxflags
 *.files
 *.includes
+# Local build artifacts and helper logs
+dist/
+linphone-desktop-master.zip
+fetch-externals-and-build.log

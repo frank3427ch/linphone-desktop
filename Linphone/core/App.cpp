@@ -743,7 +743,7 @@ void App::initCore() {
 #else
 				mEngine->rootContext()->setContextProperty("copyrightRangeDate", "");
 #endif
-			    mEngine->rootContext()->setContextProperty("applicationName", "CH NP Phone");
+			    mEngine->rootContext()->setContextProperty("applicationName", APPLICATION_NAME);
 			    mEngine->rootContext()->setContextProperty("executableName", EXECUTABLE_NAME);
 			    mEngine->rootContext()->setContextProperty("FocusNavigator", new FocusNavigator(mEngine));
 
@@ -1685,7 +1685,7 @@ void App::setSysTrayIcon() {
 	// trayIcon: Left click actions.
 	QMenu *menu = mSystemTrayIcon ? mSystemTrayIcon->contextMenu() : new QMenu();
 	menu->clear();
-	menu->setTitle("CH NP Phone");
+	menu->setTitle(APPLICATION_NAME);
 	// Build trayIcon menu.
 	if (restoreAction) {
 		menu->addAction(restoreAction);

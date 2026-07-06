@@ -73,6 +73,10 @@ set(CMAKE_INSTALL_PREFIX "${APPLICATION_OUTPUT_DIR}")
 
 set(LINPHONEAPP_APPLICATION_NAME "NP Phone" CACHE STRING "Application name" )
 set(LINPHONEAPP_EXECUTABLE_NAME "linphone" CACHE STRING "Executable name" )
+# The bundle folder name must not contain spaces: parts of the SDK (libvpx)
+# build with Makefiles that cannot handle spaces in install paths. macOS
+# displays CFBundleDisplayName, so users still see the spaced name.
+string(REPLACE " " "" LINPHONEAPP_BUNDLE_NAME "${LINPHONEAPP_APPLICATION_NAME}")
 
 # Include application_info.cmake here as the LINPHONEAPP_APPLICATION_NAME variable must be known as it is set to the APPLICATION_NAME variable.
 include(Linphone/application_info.cmake)
@@ -82,10 +86,10 @@ if( APPLE )
 	set(LINPHONESDK_BUILD_TYPE "Default")#Using Mac will remove all SDK targets.
 	set(ENABLE_FAT_BINARY "ON") # Disable XCFrameworks as it is not supported.
 
-	set(CMAKE_INSTALL_BINDIR "${LINPHONEAPP_APPLICATION_NAME}.app/Contents/MacOS")
-	set(CMAKE_INSTALL_LIBDIR "${LINPHONEAPP_APPLICATION_NAME}.app/Contents/Frameworks")
-	set(CMAKE_INSTALL_INCLUDEDIR "${LINPHONEAPP_APPLICATION_NAME}.app/Contents/Resources/include")
-	set(CMAKE_INSTALL_DATAROOTDIR "${LINPHONEAPP_APPLICATION_NAME}.app/Contents/Resources/share")
+	set(CMAKE_INSTALL_BINDIR "${LINPHONEAPP_BUNDLE_NAME}.app/Contents/MacOS")
+	set(CMAKE_INSTALL_LIBDIR "${LINPHONEAPP_BUNDLE_NAME}.app/Contents/Frameworks")
+	set(CMAKE_INSTALL_INCLUDEDIR "${LINPHONEAPP_BUNDLE_NAME}.app/Contents/Resources/include")
+	set(CMAKE_INSTALL_DATAROOTDIR "${LINPHONEAPP_BUNDLE_NAME}.app/Contents/Resources/share")
 
 	if( NOT CMAKE_OSX_DEPLOYMENT_TARGET)
 		#set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")#Qt: 'path' is unavailable: introduced in macOS 10.15

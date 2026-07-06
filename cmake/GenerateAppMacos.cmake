@@ -113,7 +113,8 @@ foreach(_FILE IN LISTS ${_BINARIES})
 		endif()
 	endif()
 endforeach()
-execute_process(COMMAND codesign --force --deep --sign - "${MAIN_INSTALL_DIR}/${LINPHONEAPP_APPLICATION_NAME}.app")#If not code signed, app can crash because of APPLE on "Code Signature Invalid".
+string(REPLACE " " "" LINPHONEAPP_BUNDLE_NAME "${LINPHONEAPP_APPLICATION_NAME}")
+execute_process(COMMAND codesign --force --deep --sign - "${MAIN_INSTALL_DIR}/${LINPHONEAPP_BUNDLE_NAME}.app")#If not code signed, app can crash because of APPLE on "Code Signature Invalid".
 
 
 #[[

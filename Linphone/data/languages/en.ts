@@ -716,7 +716,7 @@
         <location filename="../../core/App.cpp" line="548"/>
         <source>info_popup_new_version_available_message</source>
         <extracomment>A new version of Linphone (%1) is available. %2</extracomment>
-        <translation>A new version of CH NP Phone (%1) is available. %2</translation>
+        <translation>A new version of NP Phone (%1) is available. %2</translation>
     </message>
     <message>
         <location filename="../../core/App.cpp" line="556"/>

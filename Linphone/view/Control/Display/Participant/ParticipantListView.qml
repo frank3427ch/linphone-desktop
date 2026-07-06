@@ -19,6 +19,9 @@ ListView {
 	property CallGui call
 	property ParticipantGui me: call.conference ? call.conference.core.me : null
 	property bool isMeAdmin: me ? me.core.isAdmin : false
+	// Admin promotion is a conference-server concept; a locally hosted (client-mixed)
+	// conference has no admin roles to manage.
+	property bool isLocalConference: call && call.conference ? call.conference.core.isLocalConference : false
 
 	property bool hoverEnabled: true
 	property bool initialHeadersVisible: true
@@ -76,7 +79,7 @@ ListView {
 				RowLayout {
                 	spacing: Utils.getSizeWithScreenRatio(10)
 					Text {
-						visible: mainItem.isMeAdmin || modelData.core.isAdmin
+						visible: !mainItem.isLocalConference && (mainItem.isMeAdmin || modelData.core.isAdmin)
 						Layout.alignment: Qt.AlignRight
 						//: "Admin"
 						text: qsTr("meeting_participant_is_admin_label")
@@ -87,7 +90,9 @@ ListView {
 						}
 					}
 					Switch {
+						visible: !mainItem.isLocalConference
 						opacity: mainItem.isMeAdmin && !modelData.core.isMe ? 1 : 0
+						enabled: opacity > 0
 						Component.onCompleted: if (modelData.core.isAdmin) toggle()
 						//TODO : Utilser checked et onToggled (pas compris)
 						onToggled: participantModel.setParticipantAdminStatus(modelData.core, position === 1)
@@ -95,6 +100,7 @@ ListView {
 				}
 				SmallButton {
 					opacity: mainItem.isMeAdmin && !modelData.core.isMe ? 1 : 0
+					enabled: opacity > 0
                     Layout.preferredWidth: Utils.getSizeWithScreenRatio(20)
                     Layout.preferredHeight: Utils.getSizeWithScreenRatio(20)
 					color: DefaultStyle.main2_100

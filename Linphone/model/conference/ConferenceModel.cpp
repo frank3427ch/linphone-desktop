@@ -71,6 +71,11 @@ void ConferenceModel::addParticipant(const std::shared_ptr<linphone::Address> &a
 	mMonitor->addParticipant(address);
 }
 
+void ConferenceModel::addParticipant(const std::shared_ptr<linphone::Call> &call) {
+	mustBeInLinphoneThread(log().arg(Q_FUNC_INFO));
+	mMonitor->addParticipant(call);
+}
+
 int ConferenceModel::getParticipantDeviceCount() const {
 	mustBeInLinphoneThread(log().arg(Q_FUNC_INFO));
 	return mMonitor->getParticipantDeviceList().size();
@@ -142,7 +147,12 @@ void ConferenceModel::toggleScreenSharing() {
 
 	if (!device || ToolModel::isLocal(mMonitor, device)) {
 		bool enable = !device;
-		auto params = CoreModel::getInstance()->getCore()->createCallParams(mMonitor->getCall());
+		auto call = mMonitor->getCall();
+		if (!call) { // A locally hosted conference has no call of its own.
+			lWarning() << log().arg("Cannot toggle screen sharing: conference has no call");
+			return;
+		}
+		auto params = CoreModel::getInstance()->getCore()->createCallParams(call);
 		params->enableScreenSharing(enable);
 		if (enable) {
 			params->setConferenceVideoLayout(linphone::Conference::Layout::ActiveSpeaker);
@@ -297,6 +307,10 @@ void ConferenceModel::onParticipantDeviceIsMuted(
 
 void ConferenceModel::onIsScreenSharingEnabledChanged() {
 	auto call = mMonitor->getCall();
+	if (!call) { // A locally hosted conference has no call of its own.
+		lWarning() << log().arg("Cannot update layout on screen sharing change: conference has no call");
+		return;
+	}
 	std::shared_ptr<linphone::CallParams> params = CoreModel::getInstance()->getCore()->createCallParams(call);
 	lInfo() << log().arg("Old Layout=%1").arg((int)params->getConferenceVideoLayout());
 	if (params->getConferenceVideoLayout() == linphone::Conference::Layout::Grid && params->videoEnabled()) {

@@ -56,6 +56,7 @@ public:
 	void removeParticipant(const std::shared_ptr<linphone::Participant> &p);
 	void removeParticipant(const std::shared_ptr<linphone::Address> &address);
 	void addParticipant(const std::shared_ptr<linphone::Address> &address);
+	void addParticipant(const std::shared_ptr<linphone::Call> &call);
 
 	std::shared_ptr<linphone::ChatRoom> getChatRoom() const;
 

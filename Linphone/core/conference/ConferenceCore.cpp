@@ -55,6 +55,9 @@ ConferenceCore::ConferenceCore(const std::shared_ptr<linphone::Conference> &conf
 	}
 	if (me) {
 		mMe = ParticipantCore::create(me);
+		// When we are the focus, the conference is hosted and mixed locally
+		// (no conference server); server-only UI must be hidden in that case.
+		mIsLocalConference = me->isFocus();
 	}
 }
 ConferenceCore::~ConferenceCore() {
@@ -208,6 +211,10 @@ void ConferenceCore::setIsScreenSharingEnabled(bool state) {
 
 bool ConferenceCore::isChatEnabled() const {
 	return mIsChatEnabled;
+}
+
+bool ConferenceCore::isLocalConference() const {
+	return mIsLocalConference;
 }
 
 std::shared_ptr<ConferenceModel> ConferenceCore::getModel() const {

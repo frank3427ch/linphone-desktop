@@ -171,7 +171,6 @@ void ParticipantList::addAddress(const QString &address) {
 		participant->setSipAddress(address);
 		add(participant);
 		if (mConferenceModel) {
-			std::list<std::shared_ptr<linphone::Call>> runningCallsToAdd;
 			mConferenceModelConnection->invokeToModel([this, address] {
 				auto addressToInvite = ToolModel::interpretUrl(address);
 				auto currentCalls = CoreModel::getInstance()->getCore()->getCalls();
@@ -180,6 +179,7 @@ void ParticipantList::addAddress(const QString &address) {
 					                             return call->getRemoteAddress()->weakEqual(addressToInvite);
 				                             });
 				if (haveCall == currentCalls.end()) mConferenceModel->addParticipant(addressToInvite);
+				else if (!(*haveCall)->getConference()) mConferenceModel->addParticipant(*haveCall);
 			});
 		}
 		emit participant->lStartInvitation();

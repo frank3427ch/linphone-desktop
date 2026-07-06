@@ -1201,6 +1201,10 @@ AbstractWindow {
                                 Component {
                                     id: headerbutton
                                     PopupButton {
+                                        // A locally hosted conference has no meeting link to share
+                                        visible: !mainWindow.conference
+                                                 || (!mainWindow.conference.core.isLocalConference
+                                                     && mainWindow.conference.core.uri !== "")
                                         popup.contentItem: IconLabelButton {
                                             icon.source: AppIcons.shareNetwork
                                             //: Partager le lien de la réunion
@@ -1529,6 +1533,22 @@ AbstractWindow {
                                 rightPanel.visible = false
                             }
                         }
+                    }
+
+                    // Merge calls button
+                    CheckableButton {
+                        id: mergeCallsButton
+                        visible: callsModel.count >= 2 && !mainWindow.isConference
+                        checkable: false
+                        icon.source: AppIcons.arrowsMerge
+                        Layout.preferredWidth: Utils.getSizeWithScreenRatio(55)
+                        Layout.preferredHeight: Utils.getSizeWithScreenRatio(55)
+                        icon.width: Utils.getSizeWithScreenRatio(32)
+                        icon.height: Utils.getSizeWithScreenRatio(32)
+                        //: call_action_merge_calls
+                        ToolTip.text: qsTr("Merger tous les appels")
+                        Accessible.name: qsTr("Merger tous les appels")
+                        onClicked: callsModel.lMergeAll()
                     }
 
                     // Call list button

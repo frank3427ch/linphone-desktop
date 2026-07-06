@@ -44,9 +44,19 @@ execute_process(COMMAND xcrun --sdk macosx --show-sdk-platform-path
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 if(NOT ${XCRUN_SHOW_SDK_PATH_RESULT} EQUAL 0)
-	message(FATAL_ERROR "xcrun failed: ${XCRUN_SHOW_SDK_PATH_RESULT}. You may need to install Xcode.")
+	# Command Line Tools have no platform path; their SDK lives directly under
+	# <CLT>/SDKs and <CLT>/usr/bin matches the layout expected by SDK_BIN_PATH.
+	execute_process(COMMAND xcrun --sdk macosx --show-sdk-path
+		RESULT_VARIABLE XCRUN_SHOW_SDK_PATH_RESULT
+		OUTPUT_VARIABLE CMAKE_OSX_SYSROOT
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+	if(NOT ${XCRUN_SHOW_SDK_PATH_RESULT} EQUAL 0)
+		message(FATAL_ERROR "xcrun failed: ${XCRUN_SHOW_SDK_PATH_RESULT}. You may need to install Xcode.")
+	endif()
+else()
+	set(CMAKE_OSX_SYSROOT "${CMAKE_OSX_SYSROOT}/Developer/SDKs/MacOSX.sdk")
 endif()
-set(CMAKE_OSX_SYSROOT "${CMAKE_OSX_SYSROOT}/Developer/SDKs/MacOSX.sdk")
 
 execute_process(COMMAND xcrun --sdk macosx --find clang
 	RESULT_VARIABLE XCRUN_FIND_CLANG_RESULT

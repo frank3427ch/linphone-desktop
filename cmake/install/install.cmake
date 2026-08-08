@@ -61,6 +61,20 @@ install(TARGETS ${TARGET_NAME}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
+if(APPLE)
+	# The bundle target installs as ${EXECUTABLE_NAME}.app while every other component
+	# installs into ${APPLICATION_NAME}.app. When the two names differ (beyond case),
+	# merge the bundle (executable + Info.plist) into the application tree.
+	string(TOLOWER "${APPLICATION_NAME}" _app_name_lower)
+	string(TOLOWER "${EXECUTABLE_NAME}" _exe_name_lower)
+	if(NOT _app_name_lower STREQUAL _exe_name_lower)
+		install(CODE "
+			file(COPY \"${CMAKE_INSTALL_PREFIX}/${EXECUTABLE_NAME}.app/Contents\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/${APPLICATION_NAME}.app\")
+			file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/${EXECUTABLE_NAME}.app\")
+		")
+	endif()
+endif()
+
 install(FILES "${CMAKE_SOURCE_DIR}/Linphone/data/config/linphonerc-factory" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/${EXECUTABLE_NAME}")
 
 set(LINPHONE_QML_DIR "${CMAKE_SOURCE_DIR}/Linphone/view")

@@ -4,6 +4,15 @@ import QtQuick
 QtObject {
     property var themes: {
         return {
+            // Catapult Health brand navy (catapulthealth.com "Request a Demo" button)
+            "catapult": {
+                "main100": "#D8E2EF",
+                "main200": "#9FB3CE",
+                "main300": "#6C87AD",
+                "main500": "#1B365D",
+                "main600": "#142946",
+                "main700": "#0E1E33"
+            },
             "orange": {
                 "main100": "#FFEACB",
                 "main200": "#FFD098",

@@ -186,17 +186,6 @@ Item {
 						capitalization: Font.Capitalize
 					}
 				}
-				Text {
-					Layout.fillWidth: true
-					horizontalAlignment: Text.AlignHCenter
-					property string _text: mainItem.call && mainItem.call.core.remoteAddress
-					text: SettingsCpp.hideSipAddresses ? UtilsCpp.getUsername(_text) : _text
-					color: DefaultStyle.grey_0
-					font {
-                        pixelSize: Utils.getSizeWithScreenRatio(14)
-                        weight: Utils.getSizeWithScreenRatio(300)
-					}
-				}
 			}
 		}
 		Loader{

@@ -786,7 +786,7 @@ AbstractWindow {
                             if (!rightPanel.contentLoader.item || rightPanel.contentLoader.item.objectName !== "participantListPanel") rightPanel.headerStack.currentIndex = 0
                             if (!rightPanel.contentLoader.item || rightPanel.contentLoader.item.objectName !== "callTransferPanel") transferCallButton.checked = false
                             if (!rightPanel.contentLoader.item || rightPanel.contentLoader.item.objectName !== "newCallPanel") newCallButton.checked = false
-                            if (!rightPanel.contentLoader.item || rightPanel.contentLoader.item.objectName !== "callListPanel") callListButton.checked = false
+                            if (!rightPanel.contentLoader.item || rightPanel.contentLoader.item.objectName !== "dialerPanel") dialerButton.checked = false
                             if (!rightPanel.contentLoader.item || rightPanel.contentLoader.item.objectName !== "screencastPanel") screencastPanelButton.checked = false
                             if (!rightPanel.contentLoader.item || rightPanel.contentLoader.item.objectName !== "chatPanel") chatPanelButton.checked = false
                             if (!rightPanel.contentLoader.item || rightPanel.contentLoader.item.objectName !== "participantListPanel") participantListButton.checked = false
@@ -1377,12 +1377,54 @@ AbstractWindow {
                     asynchronous: true
                     sourceComponent: Item {
                         CallLayout {
-                            anchors.fill: parent
+                            anchors.left: parent.left
+                            anchors.top: parent.top
+                            anchors.bottom: parent.bottom
+                            anchors.right: embeddedSidebar.visible ? embeddedSidebar.left : parent.right
                             anchors.leftMargin: Utils.getSizeWithScreenRatio(20)
-                            anchors.rightMargin: rightPanel.visible ? 0 : Utils.getSizeWithScreenRatio(10) // Grid and AS have 10 in right margin (so apply -10 here)
+                            anchors.rightMargin: rightPanel.visible || embeddedSidebar.visible ? 0 : Utils.getSizeWithScreenRatio(10) // Grid and AS have 10 in right margin (so apply -10 here)
                             anchors.topMargin: Utils.getSizeWithScreenRatio(10)
                             call: mainWindow.call
                             callTerminatedByUser: mainWindow.callTerminatedByUser
+                        }
+                        // Call list and dialer embedded in the in-call view
+                        ColumnLayout {
+                            id: embeddedSidebar
+                            anchors.right: parent.right
+                            anchors.top: parent.top
+                            anchors.topMargin: Utils.getSizeWithScreenRatio(10)
+                            anchors.rightMargin: Utils.getSizeWithScreenRatio(10)
+                            width: Utils.getSizeWithScreenRatio(300)
+                            visible: !rightPanel.visible
+                            spacing: Utils.getSizeWithScreenRatio(10)
+                            RoundedPane {
+                                id: embeddedCallListPane
+                                Layout.fillWidth: true
+                                visible: embeddedCallList.contentHeight > 0
+                                leftPadding: Utils.getSizeWithScreenRatio(16)
+                                rightPadding: Utils.getSizeWithScreenRatio(6)
+                                topPadding: Utils.getSizeWithScreenRatio(15)
+                                bottomPadding: Utils.getSizeWithScreenRatio(16)
+                                contentItem: CallListView { id: embeddedCallList }
+                            }
+                            // DTMF dialer, always at hand during a call
+                            RoundedPane {
+                                id: embeddedDialerPane
+                                Layout.fillWidth: true
+                                leftPadding: Utils.getSizeWithScreenRatio(16)
+                                rightPadding: Utils.getSizeWithScreenRatio(16)
+                                topPadding: Utils.getSizeWithScreenRatio(15)
+                                bottomPadding: Utils.getSizeWithScreenRatio(16)
+                                contentItem: Item {
+                                    implicitHeight: embeddedNumPad.height
+                                    NumericPad {
+                                        id: embeddedNumPad
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        currentCall: callsModel.currentCall
+                                        lastRowVisible: false
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -1468,7 +1510,7 @@ AbstractWindow {
                         style: ButtonStyle.phoneRedLightBorder
                         Layout.column: mainWindow.startingCall ? 0 : bottomButtonsLayout.columns - 1
                         KeyNavigation.tab: mainWindow.startingCall ? (acceptCallButton.visible ? acceptCallButton : videoCameraButton.visible && videoCameraButton.enabled ? videoCameraButton : audioMicrophoneButton) : openStatisticPanelButton
-                        KeyNavigation.backtab: mainWindow.startingCall ? rightPanel.visible ? Utils.getLastFocusableItemInItem(rightPanel) : nextItemInFocusChain(false): callListButton
+                        KeyNavigation.backtab: mainWindow.startingCall ? rightPanel.visible ? Utils.getLastFocusableItemInItem(rightPanel) : nextItemInFocusChain(false): mergeCallsButton
                         onClicked: {
                             mainWindow.callTerminatedByUser = true
                             mainWindow.endCall(mainWindow.call)
@@ -1486,6 +1528,28 @@ AbstractWindow {
                     Layout.row: 0
                     Layout.column: 1
                     spacing: Utils.getSizeWithScreenRatio(10)
+
+                    // Dialer (DTMF) button
+                    CheckableButton {
+                        id: dialerButton
+                        Layout.preferredWidth: Utils.getSizeWithScreenRatio(55)
+                        Layout.preferredHeight: Utils.getSizeWithScreenRatio(55)
+                        checkable: true
+                        icon.source: AppIcons.dialer
+                        icon.width: Utils.getSizeWithScreenRatio(32)
+                        icon.height: Utils.getSizeWithScreenRatio(32)
+                        //: "Afficher le pavé numérique"
+                        ToolTip.text: qsTr("call_action_show_dialer")
+                        Accessible.name: qsTr("call_action_show_dialer")
+                        onToggled: {
+                            if (checked) {
+                                rightPanel.visible = true
+                                rightPanel.replace(dialerPanel)
+                            } else {
+                                rightPanel.visible = false
+                            }
+                        }
+                    }
 
                     // Pause call button
                     CheckableButton {
@@ -1565,26 +1629,20 @@ AbstractWindow {
                         }
                     }
 
-                    // Call list button
+                    // Merge calls button
                     CheckableButton {
-                        id: callListButton
+                        id: mergeCallsButton
                         Layout.preferredWidth: Utils.getSizeWithScreenRatio(55)
                         Layout.preferredHeight: Utils.getSizeWithScreenRatio(55)
-                        checkable: true
-                        icon.source: AppIcons.callList
+                        // callsModel filters out the current call (showCurrentCall is false), so add it back when counting
+                        enabled: (callsModel.count + (callsModel.currentCall ? 1 : 0)) >= 2 && !callsModel.haveNonAdminMeeting
+                        icon.source: AppIcons.arrowsMerge
                         icon.width: Utils.getSizeWithScreenRatio(32)
                         icon.height: Utils.getSizeWithScreenRatio(32)
-                        //: "Afficher la liste d'appels"
-                        ToolTip.text: qsTr("call_display_call_list_hint")
-                        Accessible.name: qsTr("call_display_call_list_hint")
-                        onToggled: {
-                            if (checked) {
-                                rightPanel.visible = true
-                                rightPanel.replace(callListPanel)
-                            } else {
-                                rightPanel.visible = false
-                            }
-                        }
+                        //: call_action_merge_calls
+                        ToolTip.text: qsTr("Merger tous les appels")
+                        Accessible.name: qsTr("Merger tous les appels")
+                        onClicked: callsModel.lMergeAll()
                         KeyNavigation.tab: mainWindow.startingCall ? nextItemInFocusChain() : endCallButton
                     }
                 }
@@ -1645,7 +1703,7 @@ AbstractWindow {
                     CheckableButton {
                         id: screencastPanelButton
                         iconUrl: AppIcons.screencast
-                        visible: !!mainWindow.conference
+                        visible: !!mainWindow.conference && SettingsCpp.videoEnabled
                         //: Partager l'écran…
                         ToolTip.text: qsTr("call_share_screen_hint")
                         Accessible.name: qsTr("call_share_screen_hint")

@@ -926,12 +926,13 @@ bool SettingsModel::getLimeIsSupported() const {
 }
 
 void SettingsModel::setDisableMeetingsFeature(bool value) {
+	if (isReadOnly(UiSection, "disable_meetings_feature")) return;
 	mConfig->setBool(UiSection, "disable_meetings_feature", value);
 	emit disableMeetingsFeatureChanged();
 }
 
 bool SettingsModel::getDisableMeetingsFeature() const {
-	return !!mConfig->getInt(UiSection, "disable_meetings_feature", 0);
+	return !!mConfig->getInt(UiSection, getEntryFullName(UiSection, "disable_meetings_feature"), 0);
 }
 
 bool SettingsModel::getShowPastMeetings() const {
@@ -1066,7 +1067,17 @@ void SettingsModel::notifyConfigReady(){
 
 }
 
-DEFINE_GETSET_CONFIG(SettingsModel, bool, Bool, disableChatFeature, DisableChatFeature, "disable_chat_feature", false)
+bool SettingsModel::getDisableChatFeature() const {
+	mustBeInLinphoneThread(log().arg(Q_FUNC_INFO));
+	return !!mConfig->getBool(UiSection, getEntryFullName(UiSection, "disable_chat_feature"), false);
+}
+void SettingsModel::setDisableChatFeature(const bool &data) {
+	if (isReadOnly(UiSection, "disable_chat_feature")) return;
+	if (getDisableChatFeature() != data) {
+		mConfig->setBool(UiSection, "disable_chat_feature", data);
+		emit disableChatFeatureChanged(data);
+	}
+}
 DEFINE_GETSET_CONFIG(SettingsModel,
 						bool,
 						Bool,

@@ -146,18 +146,30 @@ Loader{
 					width: height
 					Rectangle {
 						id: initialItem
-						property string initials: mainItem.isConference || (mainItem.displayNameVal && mainItem.displayNameVal[0] === "+") ? "" : UtilsCpp.getInitials(mainItem.displayNameVal)
+						property string shownName: mainItem.displayNameVal
+						// Phone-number names are displayed in full instead of as a single initial
+						property bool isPhoneNumber: /^\+?\d[\d\s.()-]*$/.test(shownName)
+						property string initials: mainItem.isConference
+							? ""
+							: isPhoneNumber
+								? shownName
+								: (shownName && shownName[0] === "+") ? "" : UtilsCpp.getInitials(shownName)
 						radius: width / 2
 						color: DefaultStyle.main2_200
 						height: stackView.height
 						width: height
 						Text {
 							anchors.fill: parent
+							anchors.margins: initialItem.isPhoneNumber ? initialItem.width / 8 : 0
 							anchors.centerIn: parent
 							verticalAlignment: Text.AlignVCenter
 							horizontalAlignment: Text.AlignHCenter
 							text: initialItem.initials
-							textFormat: Text.RichText
+							// Plain text and no wrapping for phone numbers: fit them on a single line
+							textFormat: initialItem.isPhoneNumber ? Text.PlainText : Text.RichText
+							wrapMode: Text.NoWrap
+							fontSizeMode: initialItem.isPhoneNumber ? Text.Fit : Text.FixedSize
+							minimumPixelSize: 6
 							font {
 								pixelSize: initialItem.height * 36 / 120
 								weight: Typography.h4.weight
@@ -166,7 +178,7 @@ Loader{
 						}
 						EffectImage {
 							id: initialImg
-							visible: initialItem.initials === "" || initialItem.initials[0] === "+"
+							visible: !initialItem.isPhoneNumber && (initialItem.initials === "" || initialItem.initials[0] === "+")
 							width: stackView.width/2
 							height: width
 							colorizationColor: DefaultStyle.main2_600
@@ -184,7 +196,7 @@ Loader{
 					}
 					Connections {
 						target: mainItem.call?.core ? mainItem.call.core : null
-						onRemoteNameChanged: initialItem.initials = UtilsCpp.getInitials(mainItem.call.core.remoteName)
+						onRemoteNameChanged: initialItem.shownName = mainItem.call.core.remoteName
 					}
 				}
 			}

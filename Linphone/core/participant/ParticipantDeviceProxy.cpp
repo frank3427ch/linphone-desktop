@@ -69,5 +69,8 @@ bool ParticipantDeviceProxy::SortFilterList::lessThan(const QModelIndex &sourceL
 	auto l = getItemAtSource<ParticipantDeviceList, ParticipantDeviceCore>(sourceLeft.row());
 	auto r = getItemAtSource<ParticipantDeviceList, ParticipantDeviceCore>(sourceRight.row());
 
-	return r->isMe() || (!r->isMe() && sourceLeft.row() < sourceRight.row());
+	// "me" must always sort first: the grid overlays the local preview on index 0.
+	// (Keying this off the right operand made the ordering self-contradictory and
+	// left "me" in a random slot, duplicating the local tile.)
+	return l->isMe() || (!r->isMe() && sourceLeft.row() < sourceRight.row());
 }

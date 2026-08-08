@@ -49,9 +49,13 @@ ParticipantDeviceCore::ParticipantDeviceCore(const std::shared_ptr<linphone::Par
 		// the display name of the device himself may be the uncleaned sip uri
 		// Use the participant name instead
 		auto participant = device->getParticipant();
-		mDisplayName = Utils::coreStringToAppString(participant ? participant->getAddress()->getDisplayName() : "");
+		auto participantAddress = participant ? participant->getAddress() : nullptr;
+		mDisplayName =
+		    Utils::coreStringToAppString(participantAddress ? participantAddress->getDisplayName() : "");
 		if (mDisplayName.isEmpty()) {
-			mDisplayName = ToolModel::getDisplayName(deviceAddress);
+			// Prefer the participant identity (contact name or dialed number) over the device
+			// contact address, which may be a meaningless PBX address
+			mDisplayName = ToolModel::getDisplayName(participantAddress ? participantAddress : deviceAddress);
 		}
 		mIsMuted = device->getIsMuted();
 		mIsSpeaking = device->getIsSpeaking();

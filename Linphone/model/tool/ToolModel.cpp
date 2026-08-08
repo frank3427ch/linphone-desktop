@@ -280,6 +280,14 @@ ToolModel::findFriendByAddress(const std::shared_ptr<const linphone::Address> &l
 		return friendsManager->getUnknownFriendAtKey(key);
 	}
 	auto f = CoreModel::getInstance()->getCore()->findFriend(linphoneAddr);
+	if (!f) {
+		// Contacts saved with only a phone number never match by SIP address:
+		// try the username as a phone number before giving up
+		auto username = linphoneAddr->getUsername();
+		if (!username.empty() && username.find_first_not_of("+0123456789") == std::string::npos) {
+			f = CoreModel::getInstance()->getCore()->findFriendByPhoneNumber(username);
+		}
+	}
 	if (f) {
 		if (friendsManager->isInUnknownFriends(key)) {
 			friendsManager->removeUnknownFriend(key);
@@ -352,7 +360,9 @@ bool ToolModel::createCall(const QString &sipAddress,
 	std::shared_ptr<linphone::CallParams> params = core->createCallParams(nullptr);
 	params->enableVideo(localVideoEnabled);
 	params->enableCamera(localVideoEnabled);
-	auto videoDirection = localVideoEnabled ? linphone::MediaDirection::SendRecv : linphone::MediaDirection::RecvOnly;
+	auto videoDirection = localVideoEnabled      ? linphone::MediaDirection::SendRecv
+	                      : core->videoEnabled() ? linphone::MediaDirection::RecvOnly
+	                                             : linphone::MediaDirection::Inactive;
 	params->setVideoDirection(videoDirection);
 
 	bool micEnabled = options.contains("microEnabled") ? options["microEnabled"].toBool() : true;

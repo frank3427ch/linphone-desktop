@@ -47,6 +47,9 @@ rls_uri=sips:rls@sip.linphone.org
 update_presence_model_timestamp_before_publish_expires_refresh=1
 use_cpim=1
 zrtp_key_agreements_suites=MS_ZRTP_KEY_AGREEMENT_K255_MLK512,MS_ZRTP_KEY_AGREEMENT_K255_KYB512
+# Voice-only deployment: require SRTP media encryption on all calls
+media_encryption=srtp
+media_encryption_mandatory=1
 
 [sound]
 #remove this property for any application that is not Linphone public version itself
@@ -56,8 +59,28 @@ ec_filter=MSWebRTCAEC
 [ui]
 assistant_supports_phone_numbers/readonly=0
 use_qrcode=0
+# Voice-only deployment: hide all chat/messaging UI and drop incoming messages.
+# The /readonly entries take precedence over any value in the user's linphonerc
+# and cannot be changed from the app.
+disable_chat_feature/readonly=1
+disable_meetings_feature/readonly=1
+# Show usernames/numbers instead of full SIP addresses throughout the UI
+hide_sip_addresses=1
+# Catapult Health brand theme (navy from catapulthealth.com)
+theme_main_color=catapult
+# Lock chat room creation off
+standard_chat_enabled/readonly=0
+secure_chat_enabled/readonly=0
 
 [video]
 auto_resize_preview_to_keep_ratio=1
 max_conference_size=vga
 other_display_mode=Hybrid
+# Voice-only deployment: disable video capture/display so all camera
+# controls and previews are hidden and calls are audio-only
+capture=0
+display=0
+show_local=0
+# Never offer or accept video escalation on calls
+automatically_initiate=0
+automatically_accept=0

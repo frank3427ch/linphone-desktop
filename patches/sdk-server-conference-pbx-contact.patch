@@ -1,0 +1,25 @@
+diff --git a/liblinphone/src/conference/server-conference.cpp b/liblinphone/src/conference/server-conference.cpp
+index bbe8e302a5..50c8e5a761 100644
+--- a/liblinphone/src/conference/server-conference.cpp
++++ b/liblinphone/src/conference/server-conference.cpp
+@@ -2001,6 +2001,20 @@ bool ServerConference::addParticipant(const std::shared_ptr<Call> call) {
+ 		auto participantDevice = (remoteContactAddress && remoteContactAddress->isValid())
+ 		                             ? findParticipantDevice(remoteContactAddress)
+ 		                             : nullptr;
++		if (participantDevice) {
++			// A PBX/B2BUA may present the same Contact address for unrelated call legs. Only treat the found
++			// device as a reconnection of the same device if the remote identity also matches, otherwise
++			// consider the new session as a distinct device of a distinct participant.
++			const auto &deviceParticipant = participantDevice->getParticipant();
++			const auto &callRemoteAddress = call->getRemoteAddress();
++			if (deviceParticipant && callRemoteAddress &&
++			    !deviceParticipant->getAddress()->weakEqual(callRemoteAddress)) {
++				lInfo() << "Found " << *participantDevice << " matching contact address " << *remoteContactAddress
++				        << " but it belongs to another participant, therefore considering session " << *session
++				        << " as a distinct participant device";
++				participantDevice = nullptr;
++			}
++		}
+ 		if (participantDevice) {
+ 			auto deviceSession = participantDevice->getSession();
+ 			if (deviceSession) {

@@ -21,6 +21,7 @@ ColumnLayout {
 		UtilsCpp.createCall(destField.text)
 		destField.text = ""
 	}
+	function focusInput() { destField.forceActiveFocus() }
 
 	Text {
 		Layout.alignment: Qt.AlignHCenter
@@ -35,13 +36,14 @@ ColumnLayout {
 		//: "Number or SIP address"
 		placeholderText: qsTr("singleview_dialer_placeholder")
 		onAccepted: dialerArea.launchCall()
+		Component.onCompleted: forceActiveFocus()
 	}
 	NumericPad {
 		id: pad
 		Layout.alignment: Qt.AlignHCenter
 		lastRowVisible: false
 		currentCall: dialerArea.dtmfMode ? dialerArea.currentCall : null
-		onButtonPressed: (text) => { if (!dialerArea.dtmfMode) destField.text += text }
+		onButtonPressed: (text) => { if (!dialerArea.dtmfMode) { destField.text += text; destField.forceActiveFocus() } }
 	}
 	Button {
 		Layout.fillWidth: true

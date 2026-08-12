@@ -10,6 +10,23 @@ import 'qrc:/qt/qml/Linphone/view/Style/buttonStyle.js' as ButtonStyle
 Item {
 	id: mainPanel
 
+	// Physical keyboard always composes into the dialer, wherever focus sits;
+	// the on-screen pad keeps its DTMF-when-connected modality.
+	Keys.onPressed: (event) => {
+		if (event.text.length === 1 && "0123456789*#+".indexOf(event.text) !== -1) {
+			dialerArea.enteredText += event.text
+			dialerArea.focusInput()
+			event.accepted = true
+		} else if (event.key === Qt.Key_Backspace) {
+			dialerArea.enteredText = dialerArea.enteredText.slice(0, -1)
+			dialerArea.focusInput()
+			event.accepted = true
+		} else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+			dialerArea.launchCall()
+			event.accepted = true
+		}
+	}
+
 	AccountProxy { id: accounts }
 	readonly property AccountGui account: accounts.defaultAccount
 	readonly property int regState: account ? account.core.registrationState : LinphoneEnums.RegistrationState.None

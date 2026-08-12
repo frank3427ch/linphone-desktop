@@ -27,6 +27,10 @@ enable_basic_to_client_group_chat_room_migration=0
 enable_simple_group_chat_message_state=0
 notify_each_friend_individually_when_presence_received=0
 hide_empty_chat_rooms=1
+# Remote provisioning (spec §9): point at the internal HTTPS endpoint serving the
+# per-agent SIP account, transports=TLS, media encryption, codec order and ICE/STUN/TURN.
+# Injected/overridden at deploy time by Ansible; no secrets ship in this file.
+# config-uri=https://provisioning.example.internal/npphone/default.xml
 
 [net]
 force_ice_disablement=0

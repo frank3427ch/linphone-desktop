@@ -72,12 +72,26 @@ Item {
 			Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: 1; color: DefaultStyle.grey_200 }
 		}
 
-		// REGION 2: call stack (Task 3)
-		Item {
+		// REGION 2: call stack
+		ListView {
+			id: callStack
 			Layout.fillWidth: true
 			Layout.fillHeight: true
+			Layout.margins: Utils.getSizeWithScreenRatio(12)
+			spacing: Utils.getSizeWithScreenRatio(10)
+			clip: true
+			model: callsModel
+			delegate: CallCard {
+				width: callStack.width
+				call: modelData
+				// A leg merged into the conference is represented by the ConferenceCard instead
+				visible: !modelData.core.conference
+				height: visible ? implicitHeight : 0
+				isCurrent: mainPanel.currentCall && modelData.core === mainPanel.currentCall.core
+			}
 			Text {
 				anchors.centerIn: parent
+				visible: callsModel.count === 0
 				//: "No active calls"
 				text: qsTr("singleview_no_active_calls")
 				font: Typography.p1

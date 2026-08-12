@@ -186,6 +186,7 @@ list(APPEND _LINPHONEAPP_QML_FILES
 	view/Page/Main/Record/RecordPage.qml
 	view/Page/Main/Start/WelcomePage.qml
 
+	view/Page/SingleView/CallCard.qml
 	view/Page/SingleView/MainPanel.qml
 
 	view/Page/Window/AbstractWindow.qml

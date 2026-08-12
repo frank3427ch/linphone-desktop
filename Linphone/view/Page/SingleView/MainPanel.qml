@@ -88,6 +88,7 @@ Item {
 				visible: !modelData.core.conference
 				height: visible ? implicitHeight : 0
 				isCurrent: mainPanel.currentCall && modelData.core === mainPanel.currentCall.core
+				transferTarget: mainPanel.dialedText
 			}
 			Text {
 				anchors.centerIn: parent

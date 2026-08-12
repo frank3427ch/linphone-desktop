@@ -123,6 +123,20 @@ Rectangle {
 			onClicked: card.call.core.lSetPaused(!card.call.core.paused)
 		}
 		SmallButton {
+			// Blind transfer to the address typed in the dialer (spec FR-8)
+			visible: !card.incoming && (card.connected || card.held)
+			enabled: card.transferTarget.length > 0
+			icon.source: AppIcons.transferCall
+			icon.width: Utils.getSizeWithScreenRatio(16)
+			icon.height: Utils.getSizeWithScreenRatio(16)
+			Layout.preferredWidth: Utils.getSizeWithScreenRatio(34)
+			Layout.preferredHeight: Utils.getSizeWithScreenRatio(34)
+			style: ButtonStyle.secondary
+			//: "Transfer to the entered address"
+			Accessible.name: qsTr("singleview_transfer")
+			onClicked: card.call.core.lTransferCall(card.transferTarget)
+		}
+		SmallButton {
 			visible: !card.incoming
 			icon.source: AppIcons.endCall
 			icon.width: Utils.getSizeWithScreenRatio(16)

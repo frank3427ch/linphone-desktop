@@ -867,6 +867,75 @@
     </message>
 </context>
 <context>
+    <name>CallCard</name>
+    <message>
+        <location filename="../../view/Page/SingleView/CallCard.qml" line="37"/>
+        <source>singleview_state_incoming</source>
+        <extracomment>Incoming call</extracomment>
+        <translation>Incoming call</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/CallCard.qml" line="39"/>
+        <source>singleview_state_dialing</source>
+        <extracomment>Calling…</extracomment>
+        <translation>Calling…</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/CallCard.qml" line="41"/>
+        <source>singleview_state_on_hold</source>
+        <extracomment>On hold</extracomment>
+        <translation>On hold</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/CallCard.qml" line="43"/>
+        <source>singleview_state_paused_by_remote</source>
+        <extracomment>Held by remote</extracomment>
+        <translation>Held by remote</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/CallCard.qml" line="45"/>
+        <source>singleview_state_active</source>
+        <extracomment>Active</extracomment>
+        <translation>Active</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/CallCard.qml" line="84"/>
+        <source>singleview_answer</source>
+        <extracomment>Answer</extracomment>
+        <translation>Answer</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/CallCard.qml" line="96"/>
+        <source>singleview_decline</source>
+        <extracomment>Decline</extracomment>
+        <translation>Decline</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/CallCard.qml" line="110"/>
+        <source>singleview_mute</source>
+        <extracomment>Mute</extracomment>
+        <translation>Mute</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/CallCard.qml" line="122"/>
+        <source>singleview_hold_resume</source>
+        <extracomment>Hold / Resume</extracomment>
+        <translation>Hold / Resume</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/CallCard.qml" line="136"/>
+        <source>singleview_transfer</source>
+        <extracomment>Transfer to the entered address</extracomment>
+        <translation>Transfer to the entered address</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/CallCard.qml" line="148"/>
+        <source>singleview_hangup</source>
+        <extracomment>Hang up</extracomment>
+        <translation>Hang up</translation>
+    </message>
+</context>
+<context>
     <name>CallCore</name>
     <message>
         <location filename="../../core/call/CallCore.cpp" line="224"/>
@@ -2868,6 +2937,27 @@ Only your correspondent can decrypt them.</translation>
     </message>
 </context>
 <context>
+    <name>ConferenceCard</name>
+    <message>
+        <location filename="../../view/Page/SingleView/ConferenceCard.qml" line="29"/>
+        <source>singleview_conference_title</source>
+        <extracomment>Conference</extracomment>
+        <translation>Conference</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/ConferenceCard.qml" line="35"/>
+        <source>singleview_end_conference</source>
+        <extracomment>End conference</extracomment>
+        <translation>End conference</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/ConferenceCard.qml" line="62"/>
+        <source>singleview_remove_participant</source>
+        <extracomment>Remove participant</extracomment>
+        <translation>Remove participant</translation>
+    </message>
+</context>
+<context>
     <name>ConferenceInfoCore</name>
     <message>
         <location filename="../../core/conference/ConferenceInfoCore.cpp" line="588"/>
@@ -3897,6 +3987,33 @@ You are about to call &quot;%1&quot; do you want to continue?</translation>
     </message>
 </context>
 <context>
+    <name>DialerArea</name>
+    <message>
+        <location filename="../../view/Page/SingleView/DialerArea.qml" line="28"/>
+        <source>singleview_dialer_mode_dtmf</source>
+        <extracomment>Keypad sends tones to the active call</extracomment>
+        <translation>Keypad sends tones to the active call</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/DialerArea.qml" line="28"/>
+        <source>singleview_dialer_mode_compose</source>
+        <extracomment>Enter a number or address to call</extracomment>
+        <translation>Enter a number or address to call</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/DialerArea.qml" line="36"/>
+        <source>singleview_dialer_placeholder</source>
+        <extracomment>Number or SIP address</extracomment>
+        <translation>Number or SIP address</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/DialerArea.qml" line="52"/>
+        <source>singleview_call_button</source>
+        <extracomment>Call</extracomment>
+        <translation>Call</translation>
+    </message>
+</context>
+<context>
     <name>Dialog</name>
     <message>
         <location filename="../../view/Control/Popup/Dialog/Dialog.qml" line="26"/>
@@ -4740,6 +4857,46 @@ Expiration : %1</translation>
         <source>drawer_menu_add_account</source>
         <extracomment>&quot;Ajouter un compte&quot;</extracomment>
         <translation>Add an account</translation>
+    </message>
+</context>
+<context>
+    <name>MainPanel</name>
+    <message>
+        <location filename="../../view/Page/SingleView/MainPanel.qml" line="54"/>
+        <source>singleview_no_account</source>
+        <extracomment>No account provisioned</extracomment>
+        <translation>No account provisioned</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/MainPanel.qml" line="67"/>
+        <source>singleview_retry_register</source>
+        <extracomment>Retry</extracomment>
+        <translation>Retry</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/MainPanel.qml" line="97"/>
+        <source>singleview_no_active_calls</source>
+        <extracomment>No active calls</extracomment>
+        <translation>No active calls</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/MainPanel.qml" line="112"/>
+        <source>singleview_merge_calls</source>
+        <extracomment>Merge calls into conference</extracomment>
+        <translation>Merge calls into conference</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/MainPanel.qml" line="167"/>
+        <location filename="../../view/Page/SingleView/MainPanel.qml" line="184"/>
+        <source>singleview_audio_devices</source>
+        <extracomment>Audio devices</extracomment>
+        <translation>Audio devices</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/MainPanel.qml" line="196"/>
+        <source>singleview_close</source>
+        <extracomment>Close</extracomment>
+        <translation>Close</translation>
     </message>
 </context>
 <context>

@@ -97,6 +97,38 @@ default has `logs_enabled=0` and `full_logs_enabled=0` — logging is off by
 default and must be turned on explicitly (via the app's settings UI, or by
 an admin editing `linphonerc` directly) for support/troubleshooting.
 
+## Speed dials
+
+The single-view dialer can show up to three provisioned speed-dial buttons
+above the number pad. They are configured from the `[ui]` section of
+`linphonerc` (either the user config or the factory config), one entry per
+slot:
+
+```ini
+[ui]
+speed_dial_1=Dispatch|2145551234
+speed_dial_2=Expert line|8005550100
+speed_dial_3=Voicemail|*97
+```
+
+- Keys are `speed_dial_1`, `speed_dial_2`, `speed_dial_3` — up to three
+  slots, read by `SettingsModel::getSpeedDials()`
+  (`Linphone/model/setting/SettingsModel.cpp`).
+- Format is `Label|number-or-sip-address`. The number may be a phone number
+  or a SIP address. If the `|` separator is missing, the whole value is used
+  as both the label and the number.
+- A slot is skipped (and its button hidden) if the key is unset, or if the
+  number half is empty after splitting.
+- Buttons are hidden entirely (`visible: SettingsCpp.speedDials.length > 0`
+  in `Linphone/view/Page/SingleView/DialerArea.qml`) when no speed dials are
+  configured, so sites that don't need them see no change.
+- Values are read once at startup (`SettingsCpp.speedDials` is a `CONSTANT`
+  QML property populated from the `SettingsModel` in the `SettingsCore`
+  constructor); provisioning is expected to apply before the core starts, so
+  there is no live-reload of these buttons while the app is running.
+- Intended to be set via provisioning/Ansible alongside the per-agent SIP
+  account, not edited by end users.
+
 ## Build
 
 Standard dev build used throughout this plan's tasks:

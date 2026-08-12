@@ -75,6 +75,11 @@ theme_main_color=catapult
 # Lock chat room creation off
 standard_chat_enabled/readonly=0
 secure_chat_enabled/readonly=0
+# Speed dials for the single-view dialer (up to 3), format: Label|number-or-sip-address.
+# Set via provisioning/Ansible; buttons are hidden when unset.
+# speed_dial_1=Dispatch|2145551234
+# speed_dial_2=Expert line|8005550100
+# speed_dial_3=Voicemail|*97
 
 [video]
 auto_resize_preview_to_keep_ratio=1

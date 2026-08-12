@@ -3989,25 +3989,31 @@ You are about to call &quot;%1&quot; do you want to continue?</translation>
 <context>
     <name>DialerArea</name>
     <message>
-        <location filename="../../view/Page/SingleView/DialerArea.qml" line="28"/>
+        <location filename="../../view/Page/SingleView/DialerArea.qml" line="39"/>
+        <source>singleview_speed_dial_accessible</source>
+        <extracomment>Call %1</extracomment>
+        <translation>Call %1</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/DialerArea.qml" line="48"/>
         <source>singleview_dialer_mode_dtmf</source>
         <extracomment>Keypad sends tones to the active call</extracomment>
         <translation>Keypad sends tones to the active call</translation>
     </message>
     <message>
-        <location filename="../../view/Page/SingleView/DialerArea.qml" line="28"/>
+        <location filename="../../view/Page/SingleView/DialerArea.qml" line="48"/>
         <source>singleview_dialer_mode_compose</source>
         <extracomment>Enter a number or address to call</extracomment>
         <translation>Enter a number or address to call</translation>
     </message>
     <message>
-        <location filename="../../view/Page/SingleView/DialerArea.qml" line="36"/>
+        <location filename="../../view/Page/SingleView/DialerArea.qml" line="56"/>
         <source>singleview_dialer_placeholder</source>
         <extracomment>Number or SIP address</extracomment>
         <translation>Number or SIP address</translation>
     </message>
     <message>
-        <location filename="../../view/Page/SingleView/DialerArea.qml" line="52"/>
+        <location filename="../../view/Page/SingleView/DialerArea.qml" line="73"/>
         <source>singleview_call_button</source>
         <extracomment>Call</extracomment>
         <translation>Call</translation>

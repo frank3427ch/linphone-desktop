@@ -62,6 +62,9 @@ public:
 	Q_PROPERTY(QVariantList ringerDevices READ getRingerDevices NOTIFY ringerDevicesChanged)
 	Q_PROPERTY(QVariantList conferenceLayouts READ getConferenceLayouts NOTIFY conferenceLayoutsChanged)
 	Q_PROPERTY(QVariantList mediaEncryptions READ getMediaEncryptions NOTIFY mediaEncryptionsChanged)
+	// Provisioned speed dials ([ui] speed_dial_1..3 = Label|number); provisioning applies before core
+	// start so no live updates are needed.
+	Q_PROPERTY(QVariantList speedDials READ getSpeedDials CONSTANT)
 
 	Q_PROPERTY(float playbackGain READ getPlaybackGain WRITE setPlaybackGain NOTIFY playbackGainChanged)
 	Q_PROPERTY(float captureGain READ getCaptureGain WRITE setCaptureGain NOTIFY captureGainChanged)
@@ -321,6 +324,8 @@ public:
 	DECLARE_CORE_GETSET_MEMBER(QString, commandLine, CommandLine)
 	DECLARE_CORE_GET_CONSTANT(QFont, emojiFont, EmojiFont)
 	DECLARE_CORE_GET_CONSTANT(QFont, textMessageFont, TextMessageFont)
+	QVariantList getSpeedDials() const;
+	QVariantList mSpeedDials;
 	// Theme
 	DECLARE_CORE_GETSET_MEMBER(QString, themeMainColor, ThemeMainColor)
 	DECLARE_CORE_GETSET_MEMBER(QString, themeAboutPictureUrl, ThemeAboutPictureUrl)

@@ -848,6 +848,29 @@ QVariantList SettingsModel::getShortcuts() const {
 	return shortcuts;
 }
 
+// Provisioned speed dials ([ui] speed_dial_1..3 = Label|number-or-sip-address). Entries with an
+// empty value, or an empty number after splitting on '|', are skipped so unset slots hide their button.
+QVariantList SettingsModel::getSpeedDials() const {
+	mustBeInLinphoneThread(log().arg(Q_FUNC_INFO));
+	QVariantList speedDials;
+	for (int i = 1; i <= 3; ++i) {
+		auto key = "speed_dial_" + std::to_string(i);
+		auto raw = Utils::coreStringToAppString(mConfig->getString(UiSection, key, ""));
+		if (raw.isEmpty()) continue;
+		auto sepIndex = raw.indexOf('|');
+		QString label = sepIndex >= 0 ? raw.left(sepIndex) : raw;
+		QString number = sepIndex >= 0 ? raw.mid(sepIndex + 1) : raw;
+		label = label.trimmed();
+		number = number.trimmed();
+		if (number.isEmpty()) continue;
+		QVariantMap speedDial;
+		speedDial["label"] = label;
+		speedDial["number"] = number;
+		speedDials << speedDial;
+	}
+	return speedDials;
+}
+
 void SettingsModel::setShortcuts(const QVariantList &data) {
 	if (getShortcuts() != data) {
 		// clean

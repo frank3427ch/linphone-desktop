@@ -237,6 +237,7 @@ public:
 	DECLARE_GETSET(QString, downloadFolder, DownloadFolder)
 	DECLARE_GETSET(int, shortcutCount, ShortcutCount)
 	DECLARE_GETSET(QVariantList, shortcuts, Shortcuts)
+	QVariantList getSpeedDials() const; // Provisioned speed dials ([ui] speed_dial_1..3 = Label|number)
 	DECLARE_GETSET(bool, usernameOnlyForLdapLookupsInCalls, UsernameOnlyForLdapLookupsInCalls)
 	DECLARE_GETSET(bool, usernameOnlyForCardDAVLookupsInCalls, UsernameOnlyForCardDAVLookupsInCalls)
 	DECLARE_GETSET(QString, commandLine, CommandLine)

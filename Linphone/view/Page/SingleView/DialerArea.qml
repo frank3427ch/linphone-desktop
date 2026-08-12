@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Linphone
 import UtilsCpp
+import SettingsCpp
 import 'qrc:/qt/qml/Linphone/view/Style/buttonStyle.js' as ButtonStyle
 import "qrc:/qt/qml/Linphone/view/Control/Tool/Helper/utils.js" as Utils
 
@@ -22,6 +23,24 @@ ColumnLayout {
 		destField.text = ""
 	}
 	function focusInput() { destField.forceActiveFocus() }
+
+	// Provisioned speed dials ([ui] speed_dial_1..3 = Label|number); hidden when none configured
+	RowLayout {
+		visible: SettingsCpp.speedDials.length > 0
+		Layout.fillWidth: true
+		spacing: Utils.getSizeWithScreenRatio(6)
+		Repeater {
+			model: SettingsCpp.speedDials
+			MediumButton {
+				Layout.fillWidth: true
+				text: modelData.label
+				style: ButtonStyle.secondary
+				//: "Call %1"
+				Accessible.name: qsTr("singleview_speed_dial_accessible").arg(modelData.label)
+				onClicked: UtilsCpp.createCall(modelData.number)
+			}
+		}
+	}
 
 	Text {
 		Layout.alignment: Qt.AlignHCenter

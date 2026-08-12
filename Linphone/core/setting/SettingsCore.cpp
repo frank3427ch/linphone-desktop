@@ -150,6 +150,7 @@ SettingsCore::SettingsCore(QObject *parent) : QObject(parent) {
 
 	INIT_CORE_MEMBER(ShortcutCount, settingsModel)
 	INIT_CORE_MEMBER(Shortcuts, settingsModel)
+	mSpeedDials = settingsModel->getSpeedDials();
 	INIT_CORE_MEMBER(CallToneIndicationsEnabled, settingsModel)
 	INIT_CORE_MEMBER(CommandLine, settingsModel)
 	INIT_CORE_MEMBER(DisableCommandLine, settingsModel)
@@ -233,6 +234,7 @@ SettingsCore::SettingsCore(const SettingsCore &settingsCore) {
 	mDownloadFolder = settingsCore.mDownloadFolder;
 	mShortcutCount = settingsCore.mShortcutCount;
 	mShortcuts = settingsCore.mShortcuts;
+	mSpeedDials = settingsCore.mSpeedDials;
 	mCallToneIndicationsEnabled = settingsCore.mCallToneIndicationsEnabled;
 	mCommandLine = settingsCore.mCommandLine;
 	mDisableCommandLine = settingsCore.mDisableCommandLine;
@@ -873,6 +875,10 @@ void SettingsCore::setCallToneIndicationsEnabled(bool enabled) {
 
 QVariantList SettingsCore::getCaptureDevices() const {
 	return mCaptureDevices;
+}
+
+QVariantList SettingsCore::getSpeedDials() const {
+	return mSpeedDials;
 }
 
 void SettingsCore::setCaptureDevices(QVariantList devices) {

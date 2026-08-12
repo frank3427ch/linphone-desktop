@@ -55,7 +55,7 @@ codec order (OPUS > PCMU/PCMA), and ICE/STUN/TURN server settings — none of
 that is hardcoded in the UI or in this repo. Note that SRTP media encryption
 is already mandatory in this fork's factory config, independent of
 provisioning: `media_encryption=srtp` / `media_encryption_mandatory=1` in the
-`[sip]` section (`Linphone/data/config/linphonerc-factory:51-52`).
+`[sip]` section (`Linphone/data/config/linphonerc-factory:55-56`).
 
 ## Logging (FR-12)
 

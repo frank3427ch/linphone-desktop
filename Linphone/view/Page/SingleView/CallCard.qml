@@ -45,6 +45,7 @@ Rectangle {
 		if (connected) return qsTr("singleview_state_active")
 		return ""
 	}
+	readonly property string label: stateLabel()
 
 	RowLayout {
 		id: content
@@ -64,8 +65,11 @@ Rectangle {
 				elide: Text.ElideRight
 			}
 			Text {
-				text: (card.incoming || card.dialing ? "" : UtilsCpp.formatElapsedTime(card.call ? card.call.core.duration : 0) + " · ")
-					  + card.stateLabel()
+				text: card.incoming || card.dialing
+					  ? card.label
+					  : (card.label.length > 0
+						 ? UtilsCpp.formatElapsedTime(card.call ? card.call.core.duration : 0) + " · " + card.label
+						 : UtilsCpp.formatElapsedTime(card.call ? card.call.core.duration : 0))
 				font: Typography.p3
 				color: card.held ? DefaultStyle.warning_700 : card.connected ? DefaultStyle.success_700 : DefaultStyle.main2_400
 			}

@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls.Basic as Control
 import Linphone
-import UtilsCpp
 import SettingsCpp
 import 'qrc:/qt/qml/Linphone/view/Control/Tool/Helper/utils.js' as Utils
 import 'qrc:/qt/qml/Linphone/view/Style/buttonStyle.js' as ButtonStyle
@@ -17,8 +16,27 @@ Item {
 
 	CallProxy { id: callsModel; sourceModel: AppCpp.calls }
 	readonly property CallGui currentCall: callsModel.currentCall
-	readonly property bool haveConference: currentCall && !!currentCall.core.conference
+	// Tracks which call (any leg) carries the active conference — independent of currentCall,
+	// so the ConferenceCard stays visible even if a non-conference call becomes current (spec §5.3).
+	property CallGui conferenceCall: null
+	readonly property bool haveConference: conferenceCall !== null
 	property alias dialedText: dialerArea.enteredText
+
+	// Tracks which call (any leg) carries the active conference, independent of currentCall
+	Repeater {
+		model: callsModel
+		delegate: Item {
+			visible: false
+			readonly property bool inConference: !!modelData.core.conference
+			onInConferenceChanged: refresh()
+			Component.onCompleted: refresh()
+			Component.onDestruction: if (mainPanel.conferenceCall && mainPanel.conferenceCall.core === modelData.core) mainPanel.conferenceCall = null
+			function refresh() {
+				if (inConference) mainPanel.conferenceCall = modelData
+				else if (mainPanel.conferenceCall && mainPanel.conferenceCall.core === modelData.core) mainPanel.conferenceCall = null
+			}
+		}
+	}
 
 	ColumnLayout {
 		anchors.fill: parent
@@ -78,17 +96,21 @@ Item {
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 			Layout.margins: Utils.getSizeWithScreenRatio(12)
-			spacing: Utils.getSizeWithScreenRatio(10)
+			spacing: 0
 			clip: true
 			model: callsModel
-			delegate: CallCard {
+			delegate: Item {
 				width: callStack.width
-				call: modelData
-				// A leg merged into the conference is represented by the ConferenceCard instead
-				visible: !modelData.core.conference
-				height: visible ? implicitHeight : 0
-				isCurrent: mainPanel.currentCall && modelData.core === mainPanel.currentCall.core
-				transferTarget: mainPanel.dialedText
+				height: card.visible ? card.implicitHeight + Utils.getSizeWithScreenRatio(10) : 0
+				CallCard {
+					id: card
+					width: parent.width
+					call: modelData
+					// A leg merged into the conference is represented by the ConferenceCard instead
+					visible: !modelData.core.conference
+					isCurrent: !!(mainPanel.currentCall && modelData.core === mainPanel.currentCall.core)
+					transferTarget: mainPanel.dialedText
+				}
 			}
 			Text {
 				anchors.centerIn: parent
@@ -119,7 +141,7 @@ Item {
 			Layout.rightMargin: Utils.getSizeWithScreenRatio(12)
 			Layout.bottomMargin: Utils.getSizeWithScreenRatio(8)
 			visible: mainPanel.haveConference
-			call: mainPanel.currentCall
+			call: mainPanel.conferenceCall
 		}
 
 		// REGION 4: dialer
@@ -185,10 +207,18 @@ Item {
 				font: Typography.h4
 				color: DefaultStyle.main2_600
 			}
-			MultimediaSettings {
+			Flickable {
 				Layout.fillWidth: true
-				ringerDevicesVisible: true
-				call: mainPanel.currentCall   // live-apply while in call; combos persist via SettingsCpp
+				Layout.preferredHeight: Math.min(multimediaSettings.implicitHeight, mainPanel.height - Utils.getSizeWithScreenRatio(200))
+				contentHeight: multimediaSettings.implicitHeight
+				clip: true
+				MultimediaSettings {
+					id: multimediaSettings
+					width: parent.width
+					ringerDevicesVisible: true
+					call: mainPanel.currentCall   // live-apply while in call; combos persist via SettingsCpp
+					backgroundVisible: false
+				}
 			}
 			MediumButton {
 				Layout.alignment: Qt.AlignHCenter

@@ -33,6 +33,7 @@ Rectangle {
 			SmallButton {
 				//: "End conference"
 				text: qsTr("singleview_end_conference")
+				Accessible.name: qsTr("singleview_end_conference")
 				style: ButtonStyle.phoneRed
 				// Ends all legs (FR-7). ConferenceCore has no terminate signal; this is the supported path.
 				onClicked: card.call.core.lTerminateAllCalls()

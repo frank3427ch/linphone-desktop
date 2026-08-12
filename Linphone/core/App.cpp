@@ -782,9 +782,8 @@ void App::initCore() {
 						    if (!callCore || callCore->getDir() == LinphoneEnums::CallDir::Incoming) return;
 						    lDebug() << "Call created in core, get calls window";
 						    mCoreModelConnection->invokeToCore([this, callCore] {
-							    auto callGui = new CallGui(callCore);
 							    Utils::smartShowWindow(getMainWindow());
-							    lDebug() << "App : call created" << callGui;
+							    lDebug() << "App : call created" << callCore;
 						    });
 					    });
 					    if (!mChatList) setChatList(ChatList::create());

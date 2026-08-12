@@ -99,7 +99,27 @@ Item {
 			}
 		}
 
-		// REGION 3: merge bar / conference card (Task 5)
+		// REGION 3: merge bar → conference card once merged (spec §5.3)
+		MediumButton {
+			Layout.fillWidth: true
+			Layout.leftMargin: Utils.getSizeWithScreenRatio(12)
+			Layout.rightMargin: Utils.getSizeWithScreenRatio(12)
+			Layout.bottomMargin: Utils.getSizeWithScreenRatio(8)
+			visible: callsModel.count >= 2 && !mainPanel.haveConference
+			icon.source: AppIcons.arrowsMerge
+			//: "Merge calls into conference"
+			text: qsTr("singleview_merge_calls")
+			style: ButtonStyle.main
+			onClicked: callsModel.lMergeAll()
+		}
+		ConferenceCard {
+			Layout.fillWidth: true
+			Layout.leftMargin: Utils.getSizeWithScreenRatio(12)
+			Layout.rightMargin: Utils.getSizeWithScreenRatio(12)
+			Layout.bottomMargin: Utils.getSizeWithScreenRatio(8)
+			visible: mainPanel.haveConference
+			call: mainPanel.currentCall
+		}
 
 		// REGION 4: dialer
 		Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: DefaultStyle.grey_200 }

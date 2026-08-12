@@ -21,8 +21,12 @@ AbstractWindow {
     }
 
 	color: DefaultStyle.grey_0
-    minimumWidth: Utils.getSizeWithScreenRatio(1020)
-    minimumHeight: Utils.getSizeWithScreenRatio(700)
+	// Single-view: fixed width, vertically resizable only (spec §2)
+	width: Utils.getSizeWithScreenRatio(400)
+	height: Utils.getSizeWithScreenRatio(720)
+	minimumWidth: Utils.getSizeWithScreenRatio(400)
+	maximumWidth: Utils.getSizeWithScreenRatio(400)
+	minimumHeight: Utils.getSizeWithScreenRatio(600)
 
 	signal callCreated()
 	property var accountProxy

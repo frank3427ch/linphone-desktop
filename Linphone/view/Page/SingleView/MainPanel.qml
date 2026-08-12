@@ -134,6 +134,74 @@ Item {
 			currentCall: mainPanel.currentCall
 		}
 
-		// REGION 5: footer (Task 7)
+		// REGION 5: footer — current output device, opens the device picker (the app's only modal)
+		Rectangle {
+			Layout.fillWidth: true
+			Layout.preferredHeight: Utils.getSizeWithScreenRatio(40)
+			color: DefaultStyle.grey_100
+			Rectangle { anchors.top: parent.top; width: parent.width; height: 1; color: DefaultStyle.grey_200 }
+			RowLayout {
+				anchors.fill: parent
+				anchors.leftMargin: Utils.getSizeWithScreenRatio(16)
+				anchors.rightMargin: Utils.getSizeWithScreenRatio(16)
+				spacing: Utils.getSizeWithScreenRatio(6)
+				EffectImage {
+					imageSource: AppIcons.speaker
+					colorizationColor: DefaultStyle.main2_400
+					Layout.preferredWidth: Utils.getSizeWithScreenRatio(15)
+					Layout.preferredHeight: Utils.getSizeWithScreenRatio(15)
+					imageWidth: Utils.getSizeWithScreenRatio(15)
+					imageHeight: Utils.getSizeWithScreenRatio(15)
+				}
+				Text {
+					Layout.fillWidth: true
+					text: SettingsCpp.playbackDevice["display_name"] ?? ""
+					font: Typography.p3
+					color: DefaultStyle.main2_400
+					elide: Text.ElideRight
+				}
+				SmallButton {
+					icon.source: AppIcons.settings
+					style: ButtonStyle.noBackground
+					//: "Audio devices"
+					Accessible.name: qsTr("singleview_audio_devices")
+					onClicked: devicePicker.open()
+				}
+			}
+		}
+	}
+
+	Control.Popup {
+		id: devicePicker
+		modal: true
+		anchors.centerIn: parent
+		width: mainPanel.width - Utils.getSizeWithScreenRatio(40)
+		padding: Utils.getSizeWithScreenRatio(16)
+		contentItem: ColumnLayout {
+			spacing: Utils.getSizeWithScreenRatio(10)
+			Text {
+				//: "Audio devices"
+				text: qsTr("singleview_audio_devices")
+				font: Typography.h4
+				color: DefaultStyle.main2_600
+			}
+			MultimediaSettings {
+				Layout.fillWidth: true
+				ringerDevicesVisible: true
+				call: mainPanel.currentCall   // live-apply while in call; combos persist via SettingsCpp
+			}
+			MediumButton {
+				Layout.alignment: Qt.AlignHCenter
+				//: "Close"
+				text: qsTr("singleview_close")
+				style: ButtonStyle.secondary
+				onClicked: devicePicker.close()
+			}
+		}
+		background: Rectangle {
+			radius: Utils.getSizeWithScreenRatio(10)
+			color: DefaultStyle.grey_0
+			border.color: DefaultStyle.grey_200
+		}
 	}
 }

@@ -18,7 +18,7 @@ Item {
 	CallProxy { id: callsModel; sourceModel: AppCpp.calls }
 	readonly property CallGui currentCall: callsModel.currentCall
 	readonly property bool haveConference: currentCall && !!currentCall.core.conference
-	property string dialedText: ""   // becomes `property alias dialedText: dialerArea.enteredText` in Task 4
+	property alias dialedText: dialerArea.enteredText
 
 	ColumnLayout {
 		anchors.fill: parent
@@ -101,7 +101,17 @@ Item {
 
 		// REGION 3: merge bar / conference card (Task 5)
 
-		// REGION 4: dialer (Task 4)
+		// REGION 4: dialer
+		Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: DefaultStyle.grey_200 }
+		DialerArea {
+			id: dialerArea
+			Layout.fillWidth: true
+			Layout.leftMargin: Utils.getSizeWithScreenRatio(16)
+			Layout.rightMargin: Utils.getSizeWithScreenRatio(16)
+			Layout.topMargin: Utils.getSizeWithScreenRatio(6)
+			Layout.bottomMargin: Utils.getSizeWithScreenRatio(12)
+			currentCall: mainPanel.currentCall
+		}
 
 		// REGION 5: footer (Task 7)
 	}

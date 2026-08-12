@@ -783,10 +783,7 @@ void App::initCore() {
 						    lDebug() << "Call created in core, get calls window";
 						    mCoreModelConnection->invokeToCore([this, callCore] {
 							    auto callGui = new CallGui(callCore);
-							    auto win = getOrCreateCallsWindow(QVariant::fromValue(callGui));
-							    Utils::smartShowWindow(win);
-							    auto mainwin = getMainWindow();
-							    QMetaObject::invokeMethod(mainwin, "callCreated");
+							    Utils::smartShowWindow(getMainWindow());
 							    lDebug() << "App : call created" << callGui;
 						    });
 					    });
@@ -1323,44 +1320,9 @@ QQuickWindow *App::getCallsWindow() {
 }
 
 QQuickWindow *App::getOrCreateCallsWindow(QVariant callGui) {
-	mustBeInMainThread(getClassName());
-	if (!mCallsWindow) {
-		const QUrl callUrl("qrc:/qt/qml/Linphone/view/Page/Window/Call/CallsWindow.qml");
-
-		lInfo() << log().arg("Creating subwindow: `%1`.").arg(callUrl.toString());
-
-		QQmlComponent component(mEngine, callUrl);
-		if (component.isError()) {
-			qWarning() << component.errors();
-			abort();
-		}
-		lInfo() << log().arg("Subwindow status: `%1`.").arg(component.status());
-
-		QObject *object = nullptr;
-		// if (!callGui.isNull() && callGui.isValid()) object = component.createWithInitialProperties({{"call",
-		// callGui}});
-		object = component.create();
-		Q_ASSERT(object);
-		if (!object) {
-			lCritical() << log().arg("Calls window could not be created.");
-			return nullptr;
-		}
-
-		// QQmlEngine::setObjectOwnership(object, QQmlEngine::CppOwnership);
-		object->setParent(mEngine);
-
-		auto window = qobject_cast<QQuickWindow *>(object);
-		Q_ASSERT(window);
-		if (!window) {
-			lCritical() << log().arg("Calls window could not be created.");
-			return nullptr;
-		}
-		// window->setParent(mMainWindow);
-		mCallsWindow = window;
-		connect(mCallsWindow, &QQuickWindow::activeChanged, this, &App::handleAppActivity);
-	}
-	if (!callGui.isNull() && callGui.isValid()) mCallsWindow->setProperty("call", callGui);
-	return mCallsWindow;
+	// Single-view app: all call UI lives in the main window; never create CallsWindow.
+	Q_UNUSED(callGui)
+	return getMainWindow();
 }
 
 void App::setCallsWindowProperty(const char *id, QVariant property) {

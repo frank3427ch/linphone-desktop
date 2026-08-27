@@ -30,6 +30,19 @@ Rectangle {
 				font: Typography.p1s
 				color: DefaultStyle.main2_600
 			}
+			// Local mic mute for the whole conference (the per-call cards, which carry
+			// the per-leg mute, are hidden while their leg is in a conference).
+			SmallButton {
+				icon.source: card.call && card.call.core.microphoneMuted ? AppIcons.microphoneSlash : AppIcons.microphone
+				icon.width: Utils.getSizeWithScreenRatio(16)
+				icon.height: Utils.getSizeWithScreenRatio(16)
+				Layout.preferredWidth: Utils.getSizeWithScreenRatio(34)
+				Layout.preferredHeight: Utils.getSizeWithScreenRatio(34)
+				style: ButtonStyle.secondary
+				//: "Mute"
+				Accessible.name: qsTr("singleview_mute")
+				onClicked: card.call.core.lSetMicrophoneMuted(!card.call.core.microphoneMuted)
+			}
 			SmallButton {
 				//: "End conference"
 				text: qsTr("singleview_end_conference")

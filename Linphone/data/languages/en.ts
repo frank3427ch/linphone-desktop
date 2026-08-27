@@ -2969,7 +2969,7 @@ Only your correspondent can decrypt them.</translation>
         <translation>Conference</translation>
     </message>
     <message>
-        <location filename="../../view/Page/SingleView/ConferenceCard.qml" line="35"/>
+        <location filename="../../view/Page/SingleView/ConferenceCard.qml" line="48"/>
         <source>singleview_end_conference</source>
         <extracomment>End conference</extracomment>
         <translation>End conference</translation>

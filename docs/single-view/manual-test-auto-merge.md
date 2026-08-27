@@ -97,6 +97,19 @@ expected result is a Fail — note exactly what you saw.
 | 7.1 | Propio connected → dial the test patient → **reject the call** from the patient phone (or let it time out **without** voicemail, e.g. a number with voicemail disabled). | The patient's row disappears from the conference card. *Propio* remains; agent and interpreter still hear each other. No error popup. |  |
 | 7.2 | Press **End conference**. | Empty dialer. |  |
 
+## 7b. Keypad tones (DTMF) — IVR menus
+
+Propio's greeting asks for a language choice, so this is exercised on every
+real call. Requires build `6.3.0-alpha.66` or later (fix `e0cb291a0`).
+
+| # | Step | Expected | Pass/Fail |
+|---|---|---|---|
+| 7b.1 | Press **Propio**; when the IVR asks for a choice, press the digit on the **physical keyboard** (number row, not the numeric keypad). | The label above the dial field reads the DTMF-mode text. The digit is **not** typed into the dial field; the IVR accepts it and moves on. |  |
+| 7b.2 | On the next prompt, click the digit on the **on-screen pad** instead. | Same: IVR accepts it, nothing typed into the field. |  |
+| 7b.3 | Dial the test patient (auto-merge). Once the patient has answered, from the patient phone say "press 5" — press **5** on the keyboard and then on the on-screen pad. | Both send a tone: the person on the patient phone hears a DTMF beep each time (the tone is sent to every leg, so the interpreter hears it too — that is expected). Nothing is typed into the field. |  |
+| 7b.4 | Press **Hold** on… (not available in conference — skip) / For a *single* call: put the call on hold, press a digit. | On hold the dialer switches to compose mode and the digit **is** typed into the field (no tone). Resume → DTMF mode again. |  |
+| 7b.5 | If an IVR still misreads digits: note whether the station uses the **built-in speakers and mic** rather than a headset. | Record it — the local key-tone playback can be picked up by an open mic and double-detected by the IVR; a headset avoids that. |  |
+
 ## 8. Regression — single calls still behave normally
 
 | # | Step | Expected | Pass/Fail |

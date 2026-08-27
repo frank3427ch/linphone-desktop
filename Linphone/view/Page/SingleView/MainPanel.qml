@@ -95,6 +95,10 @@ Item {
 			visible: false
 			readonly property bool inConference: !!(modelData && modelData.core && modelData.core.conference)
 			onInConferenceChanged: mainPanel.retrackConference()
+			// A call is added to the list on liblinphone's callCreated, while still Idle; the
+			// Outgoing* states arrive afterwards, so auto-merge must re-check on each state change.
+			readonly property int legState: modelData && modelData.core ? modelData.core.state : LinphoneEnums.CallState.Idle
+			onLegStateChanged: mainPanel.autoMerge()
 			Component.onCompleted: mainPanel.retrackConference()
 			Component.onDestruction: Qt.callLater(mainPanel.retrackConference)
 		}

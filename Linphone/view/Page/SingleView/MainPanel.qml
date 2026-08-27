@@ -42,15 +42,21 @@ Item {
 	// Re-derive the tracked conference leg from the live rows. CallList repopulates via
 	// model resets, so per-delegate bookkeeping goes stale (a destroyed delegate can't
 	// reliably clear the reference) — a full sweep is the only robust source of truth.
+	// All legs currently in the conference; the dialer sends DTMF to these once merged.
+	property var conferenceLegs: []
 	function retrackConference() {
+		var legs = []
+		var first = null
 		for (var i = 0; i < callsModel.count; ++i) {
 			var gui = callsModel.getAt(i)
 			if (gui && gui.core && gui.core.conference) {
-				if (!conferenceCall || conferenceCall.core !== gui.core) conferenceCall = gui
-				return
+				legs.push(gui)
+				if (!first) first = gui
 			}
 		}
-		conferenceCall = null
+		conferenceLegs = legs
+		if (!first) { conferenceCall = null; return }
+		if (!conferenceCall || conferenceCall.core !== first.core) conferenceCall = first
 	}
 	Connections {
 		target: callsModel
@@ -98,7 +104,8 @@ Item {
 			// A call is added to the list on liblinphone's callCreated, while still Idle; the
 			// Outgoing* states arrive afterwards, so auto-merge must re-check on each state change.
 			readonly property int legState: modelData && modelData.core ? modelData.core.state : LinphoneEnums.CallState.Idle
-			onLegStateChanged: mainPanel.autoMerge()
+			// retrack too: the dialer's DTMF targets depend on each leg's state (isLive)
+			onLegStateChanged: { mainPanel.retrackConference(); mainPanel.autoMerge() }
 			Component.onCompleted: mainPanel.retrackConference()
 			Component.onDestruction: Qt.callLater(mainPanel.retrackConference)
 		}
@@ -236,6 +243,7 @@ Item {
 			Layout.topMargin: Utils.getSizeWithScreenRatio(6)
 			Layout.bottomMargin: Utils.getSizeWithScreenRatio(12)
 			currentCall: mainPanel.currentCall
+			conferenceLegs: mainPanel.conferenceLegs
 		}
 
 		// REGION 5: footer — current output device, opens the device picker (the app's only modal)

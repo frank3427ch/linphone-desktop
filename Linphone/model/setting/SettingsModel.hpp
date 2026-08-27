@@ -247,6 +247,7 @@ public:
 	DECLARE_GETSET(int, shortcutCount, ShortcutCount)
 	DECLARE_GETSET(QVariantList, shortcuts, Shortcuts)
 	QVariantList getSpeedDials() const; // Provisioned speed dials ([ui] speed_dial_1..3 = Label|number)
+	bool getSingleViewAutoMerge() const; // [ui] singleview_auto_merge: dialing during a call conferences it
 	DECLARE_GETSET(bool, usernameOnlyForLdapLookupsInCalls, UsernameOnlyForLdapLookupsInCalls)
 	DECLARE_GETSET(bool, usernameOnlyForCardDAVLookupsInCalls, UsernameOnlyForCardDAVLookupsInCalls)
 	DECLARE_GETSET(QString, commandLine, CommandLine)

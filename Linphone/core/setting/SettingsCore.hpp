@@ -72,6 +72,8 @@ public:
 	// Provisioned speed dials ([ui] speed_dial_1..3 = Label|number); provisioning applies before core
 	// start so no live updates are needed.
 	Q_PROPERTY(QVariantList speedDials READ getSpeedDials CONSTANT)
+	// [ui] singleview_auto_merge (default 1): dialing while a call is up conferences the new leg at once
+	Q_PROPERTY(bool singleViewAutoMerge READ getSingleViewAutoMerge CONSTANT)
 
 	Q_PROPERTY(float playbackGain READ getPlaybackGain WRITE setPlaybackGain NOTIFY playbackGainChanged)
 	Q_PROPERTY(float captureGain READ getCaptureGain WRITE setCaptureGain NOTIFY captureGainChanged)
@@ -371,6 +373,8 @@ public:
 	DECLARE_CORE_GET_CONSTANT(QFont, textMessageFont, TextMessageFont)
 	QVariantList getSpeedDials() const;
 	QVariantList mSpeedDials;
+	bool getSingleViewAutoMerge() const;
+	bool mSingleViewAutoMerge = true;
 	// Theme
 	DECLARE_CORE_GETSET_MEMBER(QString, themeMainColor, ThemeMainColor)
 	DECLARE_CORE_GETSET_MEMBER(QString, themeAboutPictureUrl, ThemeAboutPictureUrl)

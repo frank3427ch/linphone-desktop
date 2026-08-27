@@ -156,6 +156,7 @@ SettingsCore::SettingsCore(QObject *parent) : QObject(parent) {
 	INIT_CORE_MEMBER(ShortcutCount, settingsModel)
 	INIT_CORE_MEMBER(Shortcuts, settingsModel)
 	mSpeedDials = settingsModel->getSpeedDials();
+	mSingleViewAutoMerge = settingsModel->getSingleViewAutoMerge();
 	INIT_CORE_MEMBER(CallToneIndicationsEnabled, settingsModel)
 	INIT_CORE_MEMBER(CommandLine, settingsModel)
 	INIT_CORE_MEMBER(DisableCommandLine, settingsModel)
@@ -248,6 +249,7 @@ SettingsCore::SettingsCore(const SettingsCore &settingsCore) {
 	mShortcutCount = settingsCore.mShortcutCount;
 	mShortcuts = settingsCore.mShortcuts;
 	mSpeedDials = settingsCore.mSpeedDials;
+	mSingleViewAutoMerge = settingsCore.mSingleViewAutoMerge;
 	mCallToneIndicationsEnabled = settingsCore.mCallToneIndicationsEnabled;
 	mCommandLine = settingsCore.mCommandLine;
 	mDisableCommandLine = settingsCore.mDisableCommandLine;
@@ -967,6 +969,10 @@ QVariantList SettingsCore::getCaptureDevices() const {
 
 QVariantList SettingsCore::getSpeedDials() const {
 	return mSpeedDials;
+}
+
+bool SettingsCore::getSingleViewAutoMerge() const {
+	return mSingleViewAutoMerge;
 }
 
 void SettingsCore::setCaptureDevices(QVariantList devices) {

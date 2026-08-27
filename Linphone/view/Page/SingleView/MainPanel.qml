@@ -54,7 +54,39 @@ Item {
 	}
 	Connections {
 		target: callsModel
-		function onCountChanged() { mainPanel.retrackConference() }
+		function onCountChanged() {
+			mainPanel.retrackConference()
+			mainPanel.autoMerge()
+		}
+	}
+
+	// Auto-merge ([ui] singleview_auto_merge, default on): when the agent dials while a call is
+	// already up, conference the legs right away — while the new one is still ringing — so the
+	// existing party (typically an interpreter) hears the answer or the voicemail greeting at
+	// once. Only an *outgoing* new leg triggers it; an incoming call ringing on top of an active
+	// call is left alone for the agent to answer or decline.
+	property bool autoMergeRequested: false
+	onHaveConferenceChanged: if (haveConference) autoMergeRequested = false
+	function autoMerge() {
+		if (!SettingsCpp.singleViewAutoMerge || autoMergeRequested || haveConference) return
+		if (callsModel.count < 2) { autoMergeRequested = false; return }
+		var haveOutgoing = false
+		for (var i = 0; i < callsModel.count; ++i) {
+			var gui = callsModel.getAt(i)
+			if (!gui || !gui.core) continue
+			var s = gui.core.state
+			if (gui.core.dir === LinphoneEnums.CallDir.Outgoing
+					&& (s === LinphoneEnums.CallState.OutgoingInit
+						|| s === LinphoneEnums.CallState.OutgoingProgress
+						|| s === LinphoneEnums.CallState.OutgoingRinging
+						|| s === LinphoneEnums.CallState.OutgoingEarlyMedia)) {
+				haveOutgoing = true
+				break
+			}
+		}
+		if (!haveOutgoing) return
+		autoMergeRequested = true
+		callsModel.lMergeAll()
 	}
 	// Change-detector per row: fires the sweep when a leg enters/leaves a conference
 	Repeater {

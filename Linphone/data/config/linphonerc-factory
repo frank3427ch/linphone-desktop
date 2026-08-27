@@ -81,6 +81,10 @@ secure_chat_enabled/readonly=0
 # speed_dial_1=Dispatch|2145551234
 # speed_dial_2=Expert line|8005550100
 # speed_dial_3=Voicemail|*97
+# Single-view auto-merge: dialing while a call is up conferences the new leg immediately
+# (while it is still ringing), so the existing party — e.g. an interpreter — hears the
+# answer or the voicemail greeting at once. Set to 0 to require a manual Merge press.
+singleview_auto_merge=1
 
 [video]
 auto_resize_preview_to_keep_ratio=1

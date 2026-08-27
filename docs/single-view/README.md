@@ -129,6 +129,30 @@ speed_dial_3=Voicemail|*97
 - Intended to be set via provisioning/Ansible alongside the per-agent SIP
   account, not edited by end users.
 
+## Auto-merge (interpreter-first calling)
+
+The primary workflow is: speed-dial the interpreter (Propio), then dial the
+patient; the interpreter must hear the patient the instant they answer —
+including a voicemail greeting, so the message can be left in the patient's
+language.
+
+With `[ui] singleview_auto_merge=1` (the shipped default, in
+`linphonerc-factory`), dialing while a call is already up conferences the
+legs immediately, while the new leg is still ringing: `MainPanel.qml`
+`autoMerge()` watches the call list and calls `lMergeAll()` as soon as a
+second, *outgoing* leg appears in an `Outgoing*` state. liblinphone attaches a
+ringing leg to the conference mixer and it becomes audible the moment it goes
+`Connected`, so no click is needed at answer time. Effects:
+
+- The interpreter is never put on hold; they hear the patient's ringback,
+  then the answer or voicemail greeting.
+- The conference card shows the patient with a **Ringing…** label until the
+  leg connects.
+- An *incoming* call ringing on top of an active call is not auto-merged; the
+  agent answers or declines it and can press **Merge** afterwards.
+- Set `singleview_auto_merge=0` (factory or user `linphonerc`) to return to
+  manual merging via the Merge button.
+
 Provisioning note: an interim build shipped in August 2026 imported speed
 dials from a local vCard (`~/.npphone/speed-dial.vcf`, `X-SPEEDDIAL:N`). That
 importer never reached the source tree; the committed mechanism is the

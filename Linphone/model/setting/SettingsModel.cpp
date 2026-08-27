@@ -885,6 +885,14 @@ QVariantList SettingsModel::getShortcuts() const {
 	return shortcuts;
 }
 
+// Single-view auto-merge ([ui] singleview_auto_merge, default 1): when a call is already up and the
+// agent dials another number, the new leg is conferenced immediately (while still ringing) so the
+// existing party — typically an interpreter — hears the answer or voicemail greeting at once.
+bool SettingsModel::getSingleViewAutoMerge() const {
+	mustBeInLinphoneThread(log().arg(Q_FUNC_INFO));
+	return !!mConfig->getInt(UiSection, "singleview_auto_merge", 1);
+}
+
 // Provisioned speed dials ([ui] speed_dial_1..3 = Label|number-or-sip-address). Entries with an
 // empty value, or an empty number after splitting on '|', are skipped so unset slots hide their button.
 QVariantList SettingsModel::getSpeedDials() const {

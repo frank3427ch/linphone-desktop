@@ -90,7 +90,7 @@ expected result is a Fail — note exactly what you saw.
 | # | Step | Expected | Pass/Fail |
 |---|---|---|---|
 | 6.1 | Set up a conference (Propio + test patient, answered). | 3-way audio. |  |
-| 6.2 | From the second phone, **call the station's extension** (1525n on np-025 / 1607n on r-np-007). | A separate **incoming call card** appears (Answer / Decline) **outside** the conference card. The conference is untouched — it does **not** gain a third row and the caller does **not** hear the conference. |  |
+| 6.2 | From the second phone, **call the station's extension** (1525n on np-025 / 1607n on r-np-007 / 1550n on np-050 / 1551n on np-051). | A separate **incoming call card** appears (Answer / Decline) **outside** the conference card. The conference is untouched — it does **not** gain a third row and the caller does **not** hear the conference. |  |
 | 6.3 | Press **Decline** on the incoming card. | Incoming card disappears; conference audio was never interrupted. |  |
 | 6.4 | Repeat 6.2, but press **Answer**. | The incoming caller is connected to the agent; the conference legs are placed on hold (the conference card stays visible). The new call has its own card with mute/hold/transfer/hang-up. |  |
 | 6.5 | Hang up the answered call with its own red button. | Conference card remains; press **End all calls** to finish. |  |

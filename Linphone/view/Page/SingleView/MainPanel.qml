@@ -39,19 +39,32 @@ Item {
 	readonly property bool haveConference: conferenceCall !== null
 	property alias dialedText: dialerArea.enteredText
 
-	// Tracks which call (any leg) carries the active conference, independent of currentCall
+	// Re-derive the tracked conference leg from the live rows. CallList repopulates via
+	// model resets, so per-delegate bookkeeping goes stale (a destroyed delegate can't
+	// reliably clear the reference) — a full sweep is the only robust source of truth.
+	function retrackConference() {
+		for (var i = 0; i < callsModel.count; ++i) {
+			var gui = callsModel.getAt(i)
+			if (gui && gui.core && gui.core.conference) {
+				if (!conferenceCall || conferenceCall.core !== gui.core) conferenceCall = gui
+				return
+			}
+		}
+		conferenceCall = null
+	}
+	Connections {
+		target: callsModel
+		function onCountChanged() { mainPanel.retrackConference() }
+	}
+	// Change-detector per row: fires the sweep when a leg enters/leaves a conference
 	Repeater {
 		model: callsModel
 		delegate: Item {
 			visible: false
-			readonly property bool inConference: !!modelData.core.conference
-			onInConferenceChanged: refresh()
-			Component.onCompleted: refresh()
-			Component.onDestruction: if (mainPanel.conferenceCall && mainPanel.conferenceCall.core === modelData.core) mainPanel.conferenceCall = null
-			function refresh() {
-				if (inConference) mainPanel.conferenceCall = modelData
-				else if (mainPanel.conferenceCall && mainPanel.conferenceCall.core === modelData.core) mainPanel.conferenceCall = null
-			}
+			readonly property bool inConference: !!(modelData && modelData.core && modelData.core.conference)
+			onInConferenceChanged: mainPanel.retrackConference()
+			Component.onCompleted: mainPanel.retrackConference()
+			Component.onDestruction: Qt.callLater(mainPanel.retrackConference)
 		}
 	}
 
@@ -139,18 +152,33 @@ Item {
 			}
 		}
 
-		// REGION 3: merge bar → conference card once merged (spec §5.3)
-		MediumButton {
+		// REGION 3: merge bar → conference card once merged (spec §5.3); end-all beside it
+		RowLayout {
 			Layout.fillWidth: true
 			Layout.leftMargin: Utils.getSizeWithScreenRatio(12)
 			Layout.rightMargin: Utils.getSizeWithScreenRatio(12)
 			Layout.bottomMargin: Utils.getSizeWithScreenRatio(8)
-			visible: callsModel.count >= 2 && !mainPanel.haveConference
-			icon.source: AppIcons.arrowsMerge
-			//: "Merge calls into conference"
-			text: qsTr("singleview_merge_calls")
-			style: ButtonStyle.main
-			onClicked: callsModel.lMergeAll()
+			visible: callsModel.count > 0
+			spacing: Utils.getSizeWithScreenRatio(8)
+			MediumButton {
+				Layout.fillWidth: true
+				visible: callsModel.count >= 2 && !mainPanel.haveConference
+				icon.source: AppIcons.arrowsMerge
+				//: "Merge calls into conference"
+				text: qsTr("singleview_merge_calls")
+				style: ButtonStyle.main
+				onClicked: callsModel.lMergeAll()
+			}
+			MediumButton {
+				Layout.fillWidth: true
+				style: ButtonStyle.phoneRed
+				//: "End all calls"
+				text: qsTr("singleview_end_all_calls")
+				onClicked: {
+					var gui = mainPanel.conferenceCall || callsModel.getAt(0)
+					if (gui && gui.core) gui.core.lTerminateAllCalls()
+				}
+			}
 		}
 		ConferenceCard {
 			Layout.fillWidth: true

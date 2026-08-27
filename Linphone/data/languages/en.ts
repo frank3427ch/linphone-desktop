@@ -4923,6 +4923,12 @@ Expiration : %1</translation>
         <translation>Merge calls into conference</translation>
     </message>
     <message>
+        <location filename="../../view/Page/SingleView/MainPanel.qml" line="176"/>
+        <source>singleview_end_all_calls</source>
+        <extracomment>End all calls</extracomment>
+        <translation>End all calls</translation>
+    </message>
+    <message>
         <location filename="../../view/Page/SingleView/MainPanel.qml" line="167"/>
         <location filename="../../view/Page/SingleView/MainPanel.qml" line="184"/>
         <source>singleview_audio_devices</source>

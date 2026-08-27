@@ -23,10 +23,17 @@
 SortFilterProxy::SortFilterProxy(QAbstractItemModel *list) : QSortFilterProxyModel(list) {
 	connect(this, &SortFilterProxy::rowsInserted, this, &SortFilterProxy::countChanged);
 	connect(this, &SortFilterProxy::rowsRemoved, this, &SortFilterProxy::countChanged);
+	// Source lists repopulated via resetData() (e.g. CallList) change the row count
+	// without emitting rowsInserted/rowsRemoved: notify on reset as well, or QML
+	// `count` bindings go stale at their pre-reset value.
+	connect(this, &SortFilterProxy::modelReset, this, &SortFilterProxy::countChanged);
 	setSourceModel(list);
 }
 
-SortFilterProxy::SortFilterProxy() {
+// QML-instantiated proxies (CallProxy { }, etc.) use this constructor: delegate to the
+// model-pointer overload so they get the countChanged wiring too, or `count` bindings
+// never update.
+SortFilterProxy::SortFilterProxy() : SortFilterProxy(nullptr) {
 }
 
 SortFilterProxy::SortFilterProxy(QAbstractItemModel *list, Qt::SortOrder order) : SortFilterProxy(list) {

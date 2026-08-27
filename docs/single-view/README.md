@@ -228,9 +228,14 @@ git -C external/linphone-sdk/liblinphone stash pop           # or re-apply patch
 cmake --build build --parallel 10
 ```
 
-If `simple` diverges from upstream in `Linphone/core/App.cpp`
-(`currentCallChanged` handler), keep the `simple` side: this branch routes all
-call UI into the main window and never creates a `CallsWindow`.
+`Linphone/core/App.cpp` conflicts on every upstream merge in the
+`currentCallChanged` handler. Keep the `simple` side **of that hunk only**
+(this branch routes all call UI into the main window and never creates a
+`CallsWindow`) and take upstream everywhere else in the file. Do **not**
+resolve with `git checkout --ours -- Linphone/core/App.cpp`: that discards
+every other upstream change in the file and the link fails with undefined
+symbols (seen 2026-08-27 with `App::isTestInstance`; fixed in `simple` by
+re-running the 3-way merge with `git merge-file`).
 
 ### 5. Release to the fleet
 

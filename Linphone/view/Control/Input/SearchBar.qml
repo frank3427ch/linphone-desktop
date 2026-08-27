@@ -34,6 +34,11 @@ FocusScope {
 		textField.text = ""
 	}
 
+	function setText(newText) {
+		textField.text = newText
+		textField.searchText = newText
+	}
+
 	Connections {
 		enabled: numericPadPopup != undefined && handleNumericPadPopupButtonsPressed
 		target: numericPadPopup ? numericPadPopup : null
@@ -68,6 +73,7 @@ FocusScope {
 	}
 	Control.TextField {
 		id: textField
+		objectName: mainItem.objectName.length > 0 ? mainItem.objectName + "Input" : "searchBarInput"
 		anchors.left: magnifier.visible ? magnifier.right : parent.left
         anchors.leftMargin: magnifier.visible ? 0 : Utils.getSizeWithScreenRatio(10)
 		anchors.right: clearTextButton.left
@@ -116,6 +122,7 @@ FocusScope {
 	}
 	Button {
 		id: dialerButton
+		objectName: mainItem.objectName.length > 0 ? mainItem.objectName + "DialerButton" : "searchBarDialerButton"
 		visible: numericPadPopup != undefined && textField.text.length === 0
 		checked: numericPadPopup?.visible || false
 		style: ButtonStyle.noBackground

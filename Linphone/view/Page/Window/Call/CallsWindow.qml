@@ -12,6 +12,7 @@ import "qrc:/qt/qml/Linphone/view/Style/buttonStyle.js" as ButtonStyle
 
 AbstractWindow {
     id: mainWindow
+    objectName: "callsWindow"
     flags: Qt.Window
     minimumWidth: Utils.getSizeWithScreenRatio(1020)
     minimumHeight: Utils.getSizeWithScreenRatio(700)
@@ -913,8 +914,7 @@ AbstractWindow {
                             roundedBottom: true
                             visible: newCallForm.searchBar.numericPadButton.checked
                             onLaunchCall: {
-                                rightPanel.visible = false
-                                UtilsCpp.createCall(newCallForm.searchBar.text)
+                                if (newCallForm.launchCallOrRedial()) rightPanel.visible = false
                             }
                             Component.onCompleted: parent.height = height
                         }
@@ -1497,6 +1497,7 @@ AbstractWindow {
                     }
                     BigButton {
                         id: endCallButton
+                        objectName: "endCallButton"
                         focus: true
                         Layout.row: 0
                         icon.width: Utils.getSizeWithScreenRatio(32)

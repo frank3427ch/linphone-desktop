@@ -57,6 +57,14 @@ AbstractSettingsLayout {
                 propertyName: "echoCancellationEnabled"
                 propertyOwner: SettingsCpp
             }
+			SwitchSetting {
+                //: "Noise suppression"
+                titleText: qsTr("settings_calls_noise_suppressor_title")
+                //: "Cleans up unwanted background noise"
+                subTitleText: qsTr("settings_calls_noise_suppressor_subtitle")
+                propertyName: "noiseSuppressionEnabled"
+                propertyOwner: SettingsCpp
+            }
             SwitchSetting {
                 Layout.fillWidth: true
                 //: "Activer l’enregistrement automatique des appels"
@@ -64,6 +72,24 @@ AbstractSettingsLayout {
                 propertyName: "automaticallyRecordCallsEnabled"
                 propertyOwner: SettingsCpp
                 visible: !SettingsCpp.disableCallRecordings
+            }
+            SwitchSetting {
+                Layout.fillWidth: true
+                //: "Répondre automatiquement aux appels entrants"
+                titleText: qsTr("settings_calls_auto_answer_title")
+                //: "Les appels entrants seront décrochés automatiquement"
+                subTitleText: qsTr("settings_calls_auto_answer_subtitle")
+                propertyName: "autoAnswerEnabled"
+                propertyOwner: SettingsCpp
+            }
+            SwitchSetting {
+                Layout.fillWidth: true
+                //: "Afficher la vue d'appel en arrière-plan"
+                titleText: qsTr("settings_calls_call_view_in_background_title")
+                //: "La fenêtre d'appel ne passera pas au premier plan"
+                subTitleText: qsTr("settings_calls_call_view_in_background_subtitle")
+                propertyName: "keepCallViewInBackground"
+                propertyOwner: SettingsCpp
             }
             SwitchSetting {
                 //: Tonalités

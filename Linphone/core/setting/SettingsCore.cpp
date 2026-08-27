@@ -49,9 +49,14 @@ SettingsCore::SettingsCore(QObject *parent) : QObject(parent) {
 	// Call
 	mVideoEnabled = settingsModel->getVideoEnabled();
 	mEchoCancellationEnabled = settingsModel->getEchoCancellationEnabled();
+	mNoiseSuppressionEnabled = settingsModel->getNoiseSuppressionEnabled();
 	mAutoDownloadReceivedFiles = settingsModel->getAutoDownloadReceivedFiles();
 	mDisplayNotificationContent = settingsModel->getDisplayNotificationContent();
 	mAutomaticallyRecordCallsEnabled = settingsModel->getAutomaticallyRecordCallsEnabled();
+	mAutoAnswerEnabled = settingsModel->getAutoAnswerEnabled();
+	mAutoAnswerActive = mAutoAnswerEnabled;
+	mKeepCallViewInBackground = settingsModel->getKeepCallViewInBackground();
+	mKeepCallViewInBackgroundActive = mKeepCallViewInBackground;
 	mRingtonePath = settingsModel->getRingtone();
 	QFileInfo ringtone(mRingtonePath);
 	if (ringtone.exists()) {
@@ -155,6 +160,7 @@ SettingsCore::SettingsCore(QObject *parent) : QObject(parent) {
 	INIT_CORE_MEMBER(CommandLine, settingsModel)
 	INIT_CORE_MEMBER(DisableCommandLine, settingsModel)
 	INIT_CORE_MEMBER(CallForwardToAddress, settingsModel)
+	INIT_CORE_MEMBER(LastDialedNumber, settingsModel)
 
 	INIT_CORE_MEMBER(ThemeMainColor, settingsModel)
 	INIT_CORE_MEMBER(ThemeAboutPictureUrl, settingsModel)
@@ -171,9 +177,14 @@ SettingsCore::SettingsCore(const SettingsCore &settingsCore) {
 	// Call
 	mVideoEnabled = settingsCore.mVideoEnabled;
 	mEchoCancellationEnabled = settingsCore.mEchoCancellationEnabled;
+	mNoiseSuppressionEnabled = settingsCore.mNoiseSuppressionEnabled;
 	mAutoDownloadReceivedFiles = settingsCore.mAutoDownloadReceivedFiles;
 	mDisplayNotificationContent = settingsCore.mDisplayNotificationContent;
 	mAutomaticallyRecordCallsEnabled = settingsCore.mAutomaticallyRecordCallsEnabled;
+	mAutoAnswerEnabled = settingsCore.mAutoAnswerEnabled;
+	mAutoAnswerActive = settingsCore.mAutoAnswerActive;
+	mKeepCallViewInBackground = settingsCore.mKeepCallViewInBackground;
+	mKeepCallViewInBackgroundActive = settingsCore.mKeepCallViewInBackgroundActive;
 
 	// Audio
 	mCaptureDevices = settingsCore.mCaptureDevices;
@@ -192,6 +203,8 @@ SettingsCore::SettingsCore(const SettingsCore &settingsCore) {
 
 	mCaptureGain = settingsCore.mCaptureGain;
 	mPlaybackGain = settingsCore.mPlaybackGain;
+
+	mLastDialedNumber = settingsCore.mLastDialedNumber;
 
 	mEchoCancellationCalibration = settingsCore.mEchoCancellationCalibration;
 
@@ -261,9 +274,14 @@ void SettingsCore::reloadSettings() {
 	// Call
 	setVideoEnabled(settingsModel->getVideoEnabled());
 	setEchoCancellationEnabled(settingsModel->getEchoCancellationEnabled());
+	setNoiseSuppressionEnabled(settingsModel->getNoiseSuppressionEnabled());
 	setAutoDownloadReceivedFiles(settingsModel->getAutoDownloadReceivedFiles());
 	setDisplayNotificationContent(settingsModel->getDisplayNotificationContent());
 	setAutomaticallyRecordCallsEnabled(settingsModel->getAutomaticallyRecordCallsEnabled());
+	setAutoAnswerEnabled(settingsModel->getAutoAnswerEnabled());
+	setAutoAnswerActive(settingsModel->getAutoAnswerEnabled());
+	setKeepCallViewInBackground(settingsModel->getKeepCallViewInBackground());
+	mKeepCallViewInBackgroundActive = settingsModel->getKeepCallViewInBackground();
 	setRingtone(settingsModel->getRingtone());
 
 	// Network
@@ -388,6 +406,12 @@ void SettingsCore::setSelf(QSharedPointer<SettingsCore> me) {
 		    mSettingsModelConnection->invokeToCore([this, enabled]() { setEchoCancellationEnabled(enabled); });
 	    });
 
+	// Noise suppression
+	mSettingsModelConnection->makeConnectToModel(
+	    &SettingsModel::noiseSuppressionEnabledChanged, [this](const bool enabled) {
+		    mSettingsModelConnection->invokeToCore([this, enabled]() { setNoiseSuppressionEnabled(enabled); });
+	    });
+
 	// IPV6
 	mSettingsModelConnection->makeConnectToModel(&SettingsModel::ipv6EnabledChanged, [this](const bool enabled) {
 		mSettingsModelConnection->invokeToCore([this, enabled]() { setIpv6Enabled(enabled); });
@@ -435,6 +459,23 @@ void SettingsCore::setSelf(QSharedPointer<SettingsCore> me) {
 	    &SettingsModel::automaticallyRecordCallsEnabledChanged, [this](const bool enabled) {
 		    mSettingsModelConnection->invokeToCore([this, enabled]() { setAutomaticallyRecordCallsEnabled(enabled); });
 	    });
+
+	// Auto answer
+	mSettingsModelConnection->makeConnectToModel(&SettingsModel::autoAnswerEnabledChanged, [this](const bool enabled) {
+		mSettingsModelConnection->invokeToCore([this, enabled]() {
+			setAutoAnswerEnabled(enabled);
+			setAutoAnswerActive(enabled);
+		});
+	});
+
+	// Call view in background
+	mSettingsModelConnection->makeConnectToModel(&SettingsModel::keepCallViewInBackgroundChanged,
+	                                             [this](const bool keep) {
+		                                             mSettingsModelConnection->invokeToCore([this, keep]() {
+			                                             setKeepCallViewInBackground(keep);
+			                                             mKeepCallViewInBackgroundActive = keep;
+		                                             });
+	                                             });
 
 	// Audio device(s)
 	mSettingsModelConnection->makeConnectToCore(&SettingsCore::lSetCaptureDevice, [this](QVariantMap device) {
@@ -489,6 +530,15 @@ void SettingsCore::setSelf(QSharedPointer<SettingsCore> me) {
 	});
 	mSettingsModelConnection->makeConnectToModel(&SettingsModel::captureGainChanged, [this](const float value) {
 		mSettingsModelConnection->invokeToCore([this, value]() { setCaptureGainFromModel(value); });
+	});
+
+	// Redial
+	mSettingsModelConnection->makeConnectToCore(&SettingsCore::lSetLastDialedNumber, [this](const QString number) {
+		mSettingsModelConnection->invokeToModel(
+		    [this, number]() { SettingsModel::getInstance()->setLastDialedNumber(number); });
+	});
+	mSettingsModelConnection->makeConnectToModel(&SettingsModel::lastDialedNumberChanged, [this](const QString number) {
+		mSettingsModelConnection->invokeToCore([this, number]() { setLastDialedNumberFromModel(number); });
 	});
 
 	mSettingsModelConnection->makeConnectToModel(&SettingsModel::micVolumeChanged, [this](const float value) {
@@ -687,7 +737,12 @@ void SettingsCore::reset(const SettingsCore &settingsCore) {
 	// Call
 	setVideoEnabled(settingsCore.mVideoEnabled);
 	setEchoCancellationEnabled(settingsCore.mEchoCancellationEnabled);
+	setNoiseSuppressionEnabled(settingsCore.mNoiseSuppressionEnabled);
 	setAutomaticallyRecordCallsEnabled(settingsCore.mAutomaticallyRecordCallsEnabled);
+	setAutoAnswerEnabled(settingsCore.mAutoAnswerEnabled);
+	setAutoAnswerActive(settingsCore.mAutoAnswerActive);
+	setKeepCallViewInBackground(settingsCore.mKeepCallViewInBackground);
+	mKeepCallViewInBackgroundActive = settingsCore.mKeepCallViewInBackgroundActive;
 
 	setAutoDownloadReceivedFiles(settingsCore.mAutoDownloadReceivedFiles);
 	setDisplayNotificationContent(settingsCore.mDisplayNotificationContent);
@@ -709,6 +764,8 @@ void SettingsCore::reset(const SettingsCore &settingsCore) {
 
 	setCaptureGain(settingsCore.mCaptureGain);
 	setPlaybackGain(settingsCore.mPlaybackGain);
+
+	setLastDialedNumberFromModel(settingsCore.mLastDialedNumber);
 
 	// Video
 	setVideoDevice(settingsCore.mVideoDevice);
@@ -811,6 +868,14 @@ void SettingsCore::setEchoCancellationEnabled(bool enabled) {
 	}
 }
 
+void SettingsCore::setNoiseSuppressionEnabled(bool enabled) {
+	if (mNoiseSuppressionEnabled != enabled) {
+		mNoiseSuppressionEnabled = enabled;
+		emit noiseSuppressionEnabledChanged();
+		setIsSaved(false);
+	}
+}
+
 void SettingsCore::setIpv6Enabled(bool enabled) {
 	if (mIpv6Enabled != enabled) {
 		mIpv6Enabled = enabled;
@@ -861,6 +926,29 @@ void SettingsCore::setAutomaticallyRecordCallsEnabled(bool enabled) {
 	if (mAutomaticallyRecordCallsEnabled != enabled) {
 		mAutomaticallyRecordCallsEnabled = enabled;
 		emit automaticallyRecordCallsEnabledChanged();
+		setIsSaved(false);
+	}
+}
+
+void SettingsCore::setAutoAnswerEnabled(bool enabled) {
+	if (mAutoAnswerEnabled != enabled) {
+		mAutoAnswerEnabled = enabled;
+		emit autoAnswerEnabledChanged();
+		setIsSaved(false);
+	}
+}
+
+void SettingsCore::setAutoAnswerActive(bool active) {
+	if (mAutoAnswerActive != active) {
+		mAutoAnswerActive = active;
+		emit autoAnswerActiveChanged();
+	}
+}
+
+void SettingsCore::setKeepCallViewInBackground(bool keep) {
+	if (mKeepCallViewInBackground != keep) {
+		mKeepCallViewInBackground = keep;
+		emit keepCallViewInBackgroundChanged();
 		setIsSaved(false);
 	}
 }
@@ -1059,6 +1147,13 @@ void SettingsCore::setPlaybackGainFromModel(float gain) {
 	if (mPlaybackGain != gain) {
 		mPlaybackGain = gain;
 		emit playbackGainChanged(gain);
+	}
+}
+
+void SettingsCore::setLastDialedNumberFromModel(QString number) {
+	if (mLastDialedNumber != number) {
+		mLastDialedNumber = number;
+		emit lastDialedNumberChanged(number);
 	}
 }
 
@@ -1342,7 +1437,10 @@ void SettingsCore::writeIntoModel(std::shared_ptr<SettingsModel> model) const {
 	// Call
 	model->setVideoEnabled(mVideoEnabled);
 	model->setEchoCancellationEnabled(mEchoCancellationEnabled);
+	model->setNoiseSuppressionEnabled(mNoiseSuppressionEnabled);
 	model->setAutomaticallyRecordCallsEnabled(mAutomaticallyRecordCallsEnabled);
+	model->setAutoAnswerEnabled(mAutoAnswerEnabled);
+	model->setKeepCallViewInBackground(mKeepCallViewInBackground);
 
 	// Chat
 	model->setAutoDownloadReceivedFiles(mAutoDownloadReceivedFiles);
@@ -1414,7 +1512,12 @@ void SettingsCore::writeFromModel(const std::shared_ptr<SettingsModel> &model) {
 	// Call
 	mVideoEnabled = model->getVideoEnabled();
 	mEchoCancellationEnabled = model->getEchoCancellationEnabled();
+	mNoiseSuppressionEnabled = model->getNoiseSuppressionEnabled();
 	mAutomaticallyRecordCallsEnabled = model->getAutomaticallyRecordCallsEnabled();
+	mAutoAnswerEnabled = model->getAutoAnswerEnabled();
+	mAutoAnswerActive = mAutoAnswerEnabled;
+	mKeepCallViewInBackground = model->getKeepCallViewInBackground();
+	mKeepCallViewInBackgroundActive = mKeepCallViewInBackground;
 	mCallToneIndicationsEnabled = model->getCallToneIndicationsEnabled();
 	mRingtonePath = model->getRingtone();
 	QFileInfo ringtone(mRingtonePath);

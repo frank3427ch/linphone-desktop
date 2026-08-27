@@ -67,7 +67,7 @@ if(NOT WIN32)
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG -DQT_NO_DEBUG")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DQT_QML_DEBUG -DQT_DECLARATIVE_DEBUG")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DQT_DECLARATIVE_DEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG -DQT_QML_DEBUG -DQT_DECLARATIVE_DEBUG" )
 set(CMAKE_INCLUDE_CURRENT_DIR ON)#useful for config.h
 
@@ -143,7 +143,7 @@ add_subdirectory(core)
 
 set(LANGUAGES_DIRECTORY "data/languages")
 set(I18N_FILENAME i18n.qrc)
-set(LANGUAGES en fr de)
+set(LANGUAGES en fr de nl)
 set(CMAKE_CPP_COMPILER gcc)
 
 # Add languages support.
@@ -210,6 +210,7 @@ endif()
 #						TARGETS LINKS
 ################################################################
 if(APPLE)
+	set(PACKAGE_VERSION "${LINPHONEAPP_VERSION}")
 	configure_file("${CMAKE_SOURCE_DIR}/cmake/install/macos/Info.plist.in" "${CMAKE_BINARY_DIR}/cmake/install/macos/Info.plist" @ONLY)
 endif()
 set_target_properties(${TARGET_NAME} PROPERTIES

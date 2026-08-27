@@ -2,7 +2,6 @@ import QtCore
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls.Basic as Control
-import Qt.labs.platform 1.1
 import QtQuick.Effects
 
 import Linphone
@@ -345,6 +344,25 @@ Item {
                     }
                     RowLayout {
                         spacing: Utils.getSizeWithScreenRatio(10)
+                        EffectImage {
+                            id: autoAnswerStatus
+                            visible: SettingsCpp.autoAnswerActive
+                            Layout.preferredWidth: Utils.getSizeWithScreenRatio(32)
+                            Layout.preferredHeight: Utils.getSizeWithScreenRatio(32)
+                            imageSource: AppIcons.autoAnswer
+                            colorizationColor: DefaultStyle.main1_500_main
+                            Accessible.role: Accessible.StaticText
+                            //: "Réponse automatique aux appels activée"
+                            Accessible.name: qsTr("main_auto_answer_enabled_accessible_name")
+                            HoverHandler {
+                                id: autoAnswerStatusHover
+                            }
+                            ToolTip {
+                                visible: autoAnswerStatusHover.hovered
+                                //: "Réponse automatique aux appels activée"
+                                text: qsTr("main_auto_answer_enabled_accessible_name")
+                            }
+                        }
                         PopupButton {
                             id: deactivateDndButton
                             Layout.preferredWidth: Utils.getSizeWithScreenRatio(32)
@@ -554,11 +572,9 @@ Item {
                                         icon.source: AppIcons.recordFill
                                         onClicked: {
                                             settingsMenuButton.popup.close()
-                                            UtilsCpp.openNativeDialog(UtilsCpp.getCaptureDirpaths())
-                                            // fileDialog.folder = UtilsCpp.getCaptureDirpaths()
-                                            // fileDialog.open()
-                                            // var page = recordingsPageComponent.createObject(parent);
-                                            // openContextualMenuComponent(page)
+                                            var page = recordingsPageComponent.createObject(parent);
+                                            openContextualMenuComponent(page)
+
                                         }
                                         KeyNavigation.up: visibleChildren.length != 0 ? settingsMenuButton.getPreviousItem(3) : null
                                         KeyNavigation.down: visibleChildren.length != 0 ? settingsMenuButton.getNextItem(3) : null
@@ -793,12 +809,6 @@ Item {
                 Component {
                     id: recordingsPageComponent
                     RecordPage {
-                        // onGoBack: {
-                        //     closeContextualMenuComponent()
-                        //     if(FocusNavigator.doesLastFocusWasKeyboard()){
-                        //         mainItem.nextItemInFocusChain().forceActiveFocus(Qt.TabFocusReason)
-                        //     }
-                        // }
                     }
                 }
                 Component {

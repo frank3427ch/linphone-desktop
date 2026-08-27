@@ -63,6 +63,9 @@ public:
 	bool getEchoCancellationEnabled() const;
 	void setEchoCancellationEnabled(bool enabled);
 
+	bool getNoiseSuppressionEnabled() const;
+	void setNoiseSuppressionEnabled(bool enabled);
+
 	void setAutoDownloadReceivedFiles(bool enabled);
 	bool getAutoDownloadReceivedFiles() const;
 
@@ -140,6 +143,12 @@ public:
 
 	bool getCallToneIndicationsEnabled() const;
 	void setCallToneIndicationsEnabled(bool enabled);
+
+	bool getAutoAnswerEnabled() const;
+	void setAutoAnswerEnabled(bool enabled);
+
+	bool getKeepCallViewInBackground() const;
+	void setKeepCallViewInBackground(bool keep);
 
 	//------------------------------------------------------------------------------------------------------------
 
@@ -243,6 +252,7 @@ public:
 	DECLARE_GETSET(QString, commandLine, CommandLine)
 	DECLARE_GETSET(bool, disableCommandLine, DisableCommandLine)
 	DECLARE_GETSET(QString, callForwardToAddress, CallForwardToAddress)
+	DECLARE_GETSET(QString, lastDialedNumber, LastDialedNumber)
 	DECLARE_GETSET(QString, chatNotificationSoundPath, ChatNotificationSoundPath)
 	DECLARE_GETSET(QString, themeMainColor, ThemeMainColor)
 	DECLARE_GETSET(QString, themeAboutPictureUrl, ThemeAboutPictureUrl)
@@ -281,7 +291,10 @@ signals:
 	void cardDAVMinCharResearchChanged(int min);
 
 	void echoCancellationEnabledChanged(bool enabled);
+	void noiseSuppressionEnabledChanged(bool enabled);
 	void automaticallyRecordCallsEnabledChanged(bool enabled);
+	void autoAnswerEnabledChanged(bool enabled);
+	void keepCallViewInBackgroundChanged(bool keep);
 
 	void callToneIndicationsEnabledChanged(bool enabled);
 

@@ -546,6 +546,17 @@ void SettingsModel::setEchoCancellationEnabled(bool status) {
 	emit echoCancellationEnabledChanged(status);
 }
 
+bool SettingsModel::getNoiseSuppressionEnabled() const {
+	mustBeInLinphoneThread(log().arg(Q_FUNC_INFO));
+	return CoreModel::getInstance()->getCore()->noiseSuppressionEnabled();
+}
+
+void SettingsModel::setNoiseSuppressionEnabled(bool status) {
+	mustBeInLinphoneThread(log().arg(Q_FUNC_INFO));
+	CoreModel::getInstance()->getCore()->enableNoiseSuppression(status);
+	emit noiseSuppressionEnabledChanged(status);
+}
+
 void SettingsModel::startEchoCancellerCalibration() {
 	mustBeInLinphoneThread(log().arg(Q_FUNC_INFO));
 	CoreModel::getInstance()->getCore()->startEchoCancellerCalibration();
@@ -565,6 +576,32 @@ void SettingsModel::setAutomaticallyRecordCallsEnabled(bool enabled) {
 	mustBeInLinphoneThread(log().arg(Q_FUNC_INFO));
 	mConfig->setInt(UiSection, "automatically_record_calls", enabled);
 	emit automaticallyRecordCallsEnabledChanged(enabled);
+}
+
+bool SettingsModel::getAutoAnswerEnabled() const {
+	mustBeInLinphoneThread(log().arg(Q_FUNC_INFO));
+	return !!mConfig->getInt(UiSection, "auto_answer", 0);
+}
+
+void SettingsModel::setAutoAnswerEnabled(bool enabled) {
+	mustBeInLinphoneThread(log().arg(Q_FUNC_INFO));
+	if (enabled != getAutoAnswerEnabled()) {
+		mConfig->setInt(UiSection, "auto_answer", enabled);
+		emit autoAnswerEnabledChanged(enabled);
+	}
+}
+
+bool SettingsModel::getKeepCallViewInBackground() const {
+	mustBeInLinphoneThread(log().arg(Q_FUNC_INFO));
+	return !!mConfig->getInt(UiSection, "keep_calls_window_in_background", 0);
+}
+
+void SettingsModel::setKeepCallViewInBackground(bool keep) {
+	mustBeInLinphoneThread(log().arg(Q_FUNC_INFO));
+	if (keep != getKeepCallViewInBackground()) {
+		mConfig->setInt(UiSection, "keep_calls_window_in_background", keep);
+		emit keepCallViewInBackgroundChanged(keep);
+	}
 }
 
 bool SettingsModel::getCallToneIndicationsEnabled() const {
@@ -907,6 +944,16 @@ QString SettingsModel::getCallForwardToAddress() const {
 void SettingsModel::setCallForwardToAddress(const QString &data) {
 	mConfig->setString(UiSection, "call_forward_to_address", Utils::appStringToCoreString(data)); // TODO implement BL
 	emit(callForwardToAddressChanged(data));
+}
+
+QString SettingsModel::getLastDialedNumber() const {
+	mustBeInLinphoneThread(log().arg(Q_FUNC_INFO));
+	return Utils::coreStringToAppString(mConfig->getString(UiSection, "last_dialed_number", ""));
+}
+
+void SettingsModel::setLastDialedNumber(const QString &data) {
+	mConfig->setString(UiSection, "last_dialed_number", Utils::appStringToCoreString(data));
+	emit(lastDialedNumberChanged(data));
 }
 
 bool SettingsModel::isSystrayNotificationBlinkEnabled() const {

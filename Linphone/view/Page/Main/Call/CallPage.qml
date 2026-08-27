@@ -196,6 +196,7 @@ AbstractMainPage {
                     }
                     Button {
                         id: newCallButton
+                        objectName: "createNewCallButton"
                         focus: true
                         style: ButtonStyle.noBackground
                         icon.source: AppIcons.newCall
@@ -396,7 +397,7 @@ AbstractMainPage {
                     Connections {
                         target: mainItem
                         function onCreateCallFromSearchBarRequested() {
-                            UtilsCpp.createCall(callContactsList.searchBar.text)
+                            callContactsList.launchCallOrRedial()
                         }
                     }
                 }

@@ -4,9 +4,25 @@ This document records every change made to turn stock **linphone-desktop** into
 **NP Phone**, a voice-only corporate softphone for Apple Silicon Macs, in
 enough detail to reproduce the fork from a clean upstream checkout.
 
-- **Upstream baseline (app):** linphone-desktop `master` @ `92320d862`
-  ("set presence at account level #LINQT-2625"), app version 6.3.0-alpha
-- **Upstream baseline (SDK):** linphone-sdk submodule @ `393b0a1f33` (5.5.9)
+- **Upstream baseline (app):** linphone-desktop `master` @ `9bee5060d`
+  (BelledonneCommunications master merged 2026-08-27; previously `92320d862`),
+  app version 6.3.0-alpha
+- **Upstream baseline (SDK):** linphone-sdk submodule @ `4bb4159ac` (5.5.16;
+  previously `393b0a1f33` / 5.5.9)
+- **Shipped branch:** `simple` (single-view softphone, built on top of this
+  voice-only fork). Everything in this file is already committed there; the
+  single-view layer on top is described in `single-view-softphone-spec.md` and
+  `docs/single-view/README.md`, which also holds the **from-scratch build and
+  deployment procedure**.
+- **Upstream-merge notes (2026-08-27):** merging `origin/master` produced one
+  conflict, `Linphone/core/App.cpp` (`currentCallChanged` handler): upstream
+  changed `smartShowWindow(win)` → `showCallsWindow(win)` in a block the
+  `simple` branch replaced wholesale (calls are routed to the main window and
+  no `CallsWindow` is ever created — commit `ca58ae5ea`). Resolution: keep the
+  `simple` side. Upstream also added a **private** submodule
+  `external/feature-specs` (`gitlab.linphone.org:BC/private/linphone-test-specs`,
+  Squish BDD specs only) — it cannot be cloned without BC credentials and is
+  not needed to build; see §6.2.
 - **Product goals:** SIP audio calling only; no chat, no video, no meetings UI;
   simplified UI (dialer, call history, contacts); mandatory SRTP; numbers and
   contact names shown instead of SIP URIs; in-call usability additions
@@ -502,9 +518,17 @@ if (participantDevice) {
     // ... existing terminate-and-replace logic unchanged ...
 ```
 
-⚠️ This lives in the **submodule**. Commit it on a fork/branch of linphone-sdk
-(or carry it as a patch file applied after `submodule update`), otherwise a
-`git submodule update` will silently discard it.
+⚠️ This lives in the **submodule**, so any `git submodule update` silently
+discards it. It is carried in this repo as
+**`patches/sdk-server-conference-pbx-contact.patch`** (commit `d4dd5d787`) and
+must be re-applied after every submodule update, **before** building:
+
+```bash
+git -C external/linphone-sdk/liblinphone apply ../../../patches/sdk-server-conference-pbx-contact.patch
+git -C external/linphone-sdk status --short   # expect: M liblinphone/src/conference/server-conference.cpp
+```
+
+Verified to apply cleanly on SDK 5.5.16 (`4bb4159ac`).
 
 ## 6. Build environment (Apple Silicon macOS)
 
@@ -555,14 +579,26 @@ endif()
 
 ### 6.2 Build
 
+The authoritative, step-by-step from-scratch procedure (including the
+single-view layer and the fleet release) is in
+**`docs/single-view/README.md` → "Reproducing the app and deployment from
+scratch"**. Summary of the fork-specific points:
+
 ```bash
-git clone <fork-url> linphone-desktop && cd linphone-desktop
-git submodule update --init --recursive
+git clone https://github.com/frank3427ch/linphone-desktop.git && cd linphone-desktop
+git checkout simple
+# bc_compute_full_version needs a 6.3.x tag reachable from HEAD; the fork's own
+# tags stop at 6.2.0-beta:
+git fetch https://github.com/BelledonneCommunications/linphone-desktop.git \
+    refs/tags/6.3.0-alpha:refs/tags/6.3.0-alpha
+# external/feature-specs is a PRIVATE BC submodule (Squish specs only): skip it.
+git submodule update --init --recursive -- external/linphone-sdk
 # gitlab.linphone.org is flaky; re-run until clean, then force-checkout —
 # interrupted clones can leave submodule worktrees EMPTY while reporting clean:
-git submodule update --init --recursive --force
+git submodule update --init --recursive --force -- external/linphone-sdk
 git submodule foreach --recursive --quiet 'test -n "$(ls)" || echo "EMPTY: $displaypath"'
-# (apply the SDK patch from §5 here if carried as a .patch file)
+# SDK patch (§5) — AFTER every submodule update, BEFORE building:
+git -C external/linphone-sdk/liblinphone apply "$PWD/patches/sdk-server-conference-pbx-contact.patch"
 
 export Qt6_DIR="$HOME/Qt/6.10.3/macos/lib/cmake/Qt6"
 export PATH="$HOME/Qt/6.10.3/macos/bin:$PATH"
@@ -571,26 +607,40 @@ mkdir build && cd build
 cmake .. -DLINPHONEAPP_MACOS_ARCHS=arm64 \
          -DCMAKE_BUILD_PARALLEL_LEVEL=10 \
          -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-         -DENABLE_APP_PACKAGING=ON
+         -DENABLE_APP_PACKAGING=OFF
 cmake --build . --parallel 10 --config RelWithDebInfo
 ```
 
 - `-DLINPHONEAPP_MACOS_ARCHS=arm64` skips the x86_64 half (default is a
   universal build; each arch rebuilds the entire SDK).
-- First build compiles the whole SDK (long); later builds are incremental.
-- Outputs: app bundle at `build/OUTPUT/macos/NP Phone.app`, drag-and-drop DMG
-  at `build/OUTPUT/macos/Packages/NP Phone-<version>-mac.dmg`.
+- `-DENABLE_APP_PACKAGING=OFF`: the CPack DragNDrop DMG step drives Finder via
+  AppleScript and dies headless (AppleEvent timeout -1712). The fleet is
+  deployed as a bare `.app` via Ansible, so the DMG is not needed. (With
+  packaging ON the `.app` is still complete before the DMG step fails.)
+- First build compiles the whole SDK (~2 h); later builds are incremental.
+- Output: app bundle at **`build/OUTPUT/macos/NPPhone.app`** (bundle folder is
+  the space-stripped `LINPHONEAPP_BUNDLE_NAME` — libvpx's Makefile build
+  word-splits install paths with spaces; Finder/Dock show "NP Phone" via
+  `CFBundleDisplayName`).
 - Optional hardening: add `-DENABLE_VIDEO=OFF` to compile video support out of
   the SDK entirely (cascades to `ENABLE_OPENH264`, `ENABLE_SCREENSHARING`).
 
 ### 6.3 Deploy
 
+Local test install:
+
 ```bash
-cp -R "build/OUTPUT/macos/NP Phone.app" /Applications/
+rm -rf /Applications/NPPhone.app && cp -R build/OUTPUT/macos/NPPhone.app /Applications/
 ```
 
-The build is **ad-hoc signed** — fine on the build machine only. For fleet
-distribution: sign with a Developer ID Application certificate
+Fleet: the bundle is committed as `bins/NPPhone.app` in the
+`ansible-npstations` repo and pushed by `playbook2.yml --tags linphone`, which
+also renders the per-station `linphonerc` (SIP account + `[ui] speed_dial_N`).
+See `docs/single-view/README.md` for the release steps.
+
+The build is **ad-hoc signed** — the playbook clears the quarantine xattr on
+each station. For distribution outside the managed fleet: sign with a Developer
+ID Application certificate
 (`-DLINPHONE_BUILDER_SIGNING_IDENTITY="Developer ID Application: ..."`),
 notarize (`xcrun notarytool submit --wait`), staple, then push via MDM.
 

@@ -1,10 +1,10 @@
 diff --git a/liblinphone/src/conference/server-conference.cpp b/liblinphone/src/conference/server-conference.cpp
-index bbe8e302a5..50c8e5a761 100644
+index e98a7095fe..f3bd92fcce 100644
 --- a/liblinphone/src/conference/server-conference.cpp
 +++ b/liblinphone/src/conference/server-conference.cpp
-@@ -2001,6 +2001,20 @@ bool ServerConference::addParticipant(const std::shared_ptr<Call> call) {
+@@ -1946,6 +1946,20 @@ bool ServerConference::addParticipant(const std::shared_ptr<Call> call) {
  		auto participantDevice = (remoteContactAddress && remoteContactAddress->isValid())
- 		                             ? findParticipantDevice(remoteContactAddress)
+ 		                             ? findParticipantDevice(session->getRemoteAddress(), remoteContactAddress)
  		                             : nullptr;
 +		if (participantDevice) {
 +			// A PBX/B2BUA may present the same Contact address for unrelated call legs. Only treat the found

@@ -129,9 +129,136 @@ speed_dial_3=Voicemail|*97
 - Intended to be set via provisioning/Ansible alongside the per-agent SIP
   account, not edited by end users.
 
+Provisioning note: an interim build shipped in August 2026 imported speed
+dials from a local vCard (`~/.npphone/speed-dial.vcf`, `X-SPEEDDIAL:N`). That
+importer never reached the source tree; the committed mechanism is the
+`[ui] speed_dial_N` keys above, and `ansible-npstations` (`templates/linphonerc.j2`,
+`speed_dials` in `group_vars/all/main.yml`) renders those. The playbook removes
+the legacy `~/.npphone` directory.
+
+## Reproducing the app and deployment from scratch
+
+Everything needed to rebuild `NPPhone.app` and push it to the fleet is in two
+git repositories; nothing lives only on a build machine:
+
+| Repo | Branch | Holds |
+|---|---|---|
+| `https://github.com/frank3427ch/linphone-desktop` | `simple` | App source, SDK patch (`patches/`), factory config, this doc, `VOICE_ONLY_FORK.md` (every deviation from upstream) |
+| `ansible-npstations` (private) | `npphone-local-speeddial` | `bins/NPPhone.app` (the built artifact), `playbook2.yml`, `templates/linphonerc.j2`, SIP/speed-dial vars |
+
+Pinned baselines: linphone-desktop upstream `9bee5060d` (merged 2026-08-27),
+linphone-sdk `4bb4159ac` (5.5.16), Qt 6.10.3, app version tag `6.3.0-alpha`.
+
+### 1. Build machine prerequisites (Apple Silicon, macOS 26, Command Line Tools only)
+
+```bash
+xcode-select --install                     # full Xcode is NOT required (toolchain fallback is committed)
+brew install cmake ninja nasm yasm doxygen meson ccache
+/opt/homebrew/bin/python3 -m pip install --break-system-packages pystache six   # SDK code generators
+python3 -m venv ~/.linphone-build-venv && ~/.linphone-build-venv/bin/pip install aqtinstall
+~/.linphone-build-venv/bin/aqt install-qt mac desktop 6.10.3 clang_64 -m qtnetworkauth qtshadertools -O ~/Qt
+```
+
+### 2. Source checkout
+
+```bash
+git clone https://github.com/frank3427ch/linphone-desktop.git && cd linphone-desktop
+git checkout simple
+# Version stamping needs a 6.3.x tag reachable from HEAD (fork tags stop at 6.2.0-beta):
+git fetch https://github.com/BelledonneCommunications/linphone-desktop.git \
+    refs/tags/6.3.0-alpha:refs/tags/6.3.0-alpha
+# Only the SDK submodule is needed. external/feature-specs is a PRIVATE
+# Belledonne repo (Squish test specs) and will fail to clone — do not init it.
+git submodule update --init --recursive -- external/linphone-sdk
+# gitlab.linphone.org flaps: repeat until clean, then verify no EMPTY worktrees
+git submodule update --init --recursive --force -- external/linphone-sdk
+git submodule foreach --recursive --quiet 'test -n "$(ls)" || echo "EMPTY: $displaypath"'
+# SDK patch — re-apply after EVERY submodule update, before building
+git -C external/linphone-sdk/liblinphone apply "$PWD/patches/sdk-server-conference-pbx-contact.patch"
+git -C external/linphone-sdk status --short   # expect: M liblinphone/src/conference/server-conference.cpp
+```
+
+### 3. Configure and build
+
+```bash
+export Qt6_DIR="$HOME/Qt/6.10.3/macos/lib/cmake/Qt6"
+export PATH="$HOME/Qt/6.10.3/macos/bin:$PATH"
+cmake -S . -B build \
+      -DLINPHONEAPP_MACOS_ARCHS=arm64 \
+      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+      -DENABLE_APP_PACKAGING=OFF
+cmake --build build --parallel 10
+```
+
+- First build compiles the whole SDK (~2 h); later builds are incremental
+  (`cmake --build build --parallel 10`).
+- `ENABLE_APP_PACKAGING=OFF` skips the CPack DragNDrop DMG, which drives
+  Finder via AppleScript and dies headless (AppleEvent -1712). The fleet gets
+  a bare `.app`, so the DMG is not needed. The reference build tree that
+  produced the shipped bundles was configured with `ENABLE_APP_PACKAGING=ON`
+  (`build/CMakeCache.txt`); the resulting `.app` is identical, the build just
+  ends with the ignorable DMG error.
+- The shipped build keeps the defaults `ENABLE_UPDATE_CHECK=ON` and
+  `ENABLE_BUILD_APP_PLUGINS=ON`. The spec's stripped-down packaging flags
+  (see "Packaging-build flags" below) are optional and have not been used for
+  any fleet release.
+- `xcode-select: error: tool 'xcodebuild' requires Xcode` lines in the log
+  are expected noise on a CLT-only machine.
+- macdeployqt `ERROR` lines about `libopenh264.6.dylib` are expected (codec
+  excluded on purpose, downloaded at runtime).
+- Result: `build/OUTPUT/macos/NPPhone.app` (deployed via macdeployqt, ad-hoc
+  signed). The bundle folder is space-free by design (libvpx word-splits
+  install paths); Finder/Dock show "NP Phone" from `CFBundleDisplayName`.
+
+Sanity check before shipping:
+
+```bash
+codesign --verify --deep --strict build/OUTPUT/macos/NPPhone.app && echo signed-ok
+strings build/OUTPUT/macos/NPPhone.app/Contents/MacOS/linphone | grep -c speed_dial_   # >= 1: single-view build
+open build/OUTPUT/macos/NPPhone.app   # registers against the PBX, dialer visible, speed dials from linphonerc
+```
+
+### 4. Refreshing an existing checkout after an upstream merge or SDK bump
+
+```bash
+git pull                                                     # or merge origin/master into simple
+git -C external/linphone-sdk/liblinphone stash               # keep the patch across the checkout
+git submodule update --init --recursive -- external/linphone-sdk
+git -C external/linphone-sdk/liblinphone stash pop           # or re-apply patches/ if the pop conflicts
+cmake --build build --parallel 10
+```
+
+If `simple` diverges from upstream in `Linphone/core/App.cpp`
+(`currentCallChanged` handler), keep the `simple` side: this branch routes all
+call UI into the main window and never creates a `CallsWindow`.
+
+### 5. Release to the fleet
+
+```bash
+# from linphone-desktop, after step 3
+rm -rf ../ansible-npstations/bins/NPPhone.app
+cp -R build/OUTPUT/macos/NPPhone.app ../ansible-npstations/bins/NPPhone.app
+cd ../ansible-npstations
+git add bins/NPPhone.app
+git commit -m "NP Phone: ship NPPhone.app built from linphone-desktop simple @ $(git -C ../linphone-desktop rev-parse --short HEAD)"
+ansible-playbook playbook2.yml --tags linphone --limit <one pilot station>   # then the fleet
+```
+
+`--tags linphone` deletes any older `CH NP Phone.app` / `NP Phone.app`,
+rsyncs `NPPhone.app` into `/Applications`, clears quarantine, refreshes the
+icon cache, quits the running app, and rewrites
+`~/Library/Preferences/linphone/linphonerc` from `templates/linphonerc.j2`
+(SIP account from `NP_EXTENSION` + vaulted `sip_passwords`, speed dials from
+`speed_dials`). To change speed dials only: edit `group_vars/all/main.yml` and
+run `--tags linphone_speeddial`.
+
+Rollback: `git revert` the bins commit in `ansible-npstations` and re-run
+`--tags linphone`.
+
 ## Build
 
-Standard dev build used throughout this plan's tasks:
+Standard dev build used throughout this plan's tasks (existing `build/`
+directory configured as in step 3 above):
 
 ```bash
 cd /Users/administrator/Documents/GitHub/linphone-desktop

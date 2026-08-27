@@ -1,8 +1,13 @@
 # NP Phone — Manual Test: Interpreter-First Auto-Merge
 
-**Build under test:** NP Phone `6.3.0-alpha.63+c16b09fdc` (linphone-desktop branch
-`simple`), deployed 2026-08-27 to pilot stations **np-025** (ext 1525n) and
-**r-np-007** (ext 1607n).
+**Build under test:** NP Phone `6.3.0-alpha.66+e0cb291a0` (linphone-desktop branch
+`simple`), deployed 2026-08-27 to pilot stations **np-025** (ext 1525n),
+**r-np-007** (ext 1607n), **np-050** (ext 1550n) and **np-051** (ext 1551n).
+
+Fixes since the first pilot build (`.63`), both found on np-025:
+- `.65` — auto-merge did not fire (Propio went on hold, Merge had to be pressed).
+- `.66` — keyboard digits were typed into the dial field instead of being sent
+  as tones, and tones stopped working once calls were merged (section 7b).
 
 **Feature under test:** when a call is already up and the agent dials another
 number, the new leg is conferenced automatically while it is still ringing
@@ -22,7 +27,7 @@ expected result is a Fail — note exactly what you saw.
 | 0.1 | Log in as the NP user (`catanp`) and open **NP Phone** from the Dock. | Single-view window (fixed width). Footer shows the audio device. No error banner at the top. |  |
 | 0.2 | Check the top of the panel. | Registration is **not** shown as failed (no red "registration failed" text). |  |
 | 0.3 | Look above the number pad. | Two speed-dial buttons: **Propio** and **Patient Support**. (If they are missing, stop — provisioning did not land; see "Troubleshooting".) |  |
-| 0.4 | Confirm the build. In Finder: `/Applications/NPPhone.app` → right-click → *Get Info* → Version. | `6.3.0-alpha.63+c16b09fdc` |  |
+| 0.4 | Confirm the build. In Finder: `/Applications/NPPhone.app` → right-click → *Get Info* → Version. | `6.3.0-alpha.66+e0cb291a0` |  |
 | 0.5 | Have ready: (a) a headset on the station, (b) a **test "patient" phone** — a mobile with voicemail enabled whose number you know, (c) a second person or a second phone to act as an **incoming caller** for test 6. | — |  |
 
 > The "interpreter" leg in these tests is the real Propio line (speed dial 1,
@@ -152,7 +157,9 @@ Only if a site needs the old behaviour; requires editing the station config.
 
 ## Sign-off
 
-| Station | Tester | Date | Tests 1–8 all Pass? | Notes |
+| Station | Tester | Date | Tests 1–8 (incl. 7b) all Pass? | Notes |
 |---|---|---|---|---|
 | np-025 |  |  |  |  |
 | r-np-007 |  |  |  |  |
+| np-050 |  |  |  |  |
+| np-051 |  |  |  |  |

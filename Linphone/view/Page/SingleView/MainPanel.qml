@@ -187,6 +187,7 @@ Item {
 			Layout.bottomMargin: Utils.getSizeWithScreenRatio(8)
 			visible: mainPanel.haveConference
 			call: mainPanel.conferenceCall
+			calls: callsModel
 		}
 
 		// REGION 4: dialer

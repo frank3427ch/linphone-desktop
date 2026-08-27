@@ -8,6 +8,33 @@ import "qrc:/qt/qml/Linphone/view/Control/Tool/Helper/utils.js" as Utils
 Rectangle {
 	id: card
 	property CallGui call
+	// The call list (CallProxy) so each participant row can find its own leg and show
+	// its state — a leg can be merged while still ringing (spec §5.3).
+	property var calls: null
+	readonly property int callCount: calls ? calls.count : 0
+
+	function legFor(sipAddress) {
+		if (!calls || !sipAddress) return null
+		var user = sipAddress.split(":")[1]
+		user = user ? user.split("@")[0] : ""
+		for (var i = 0; i < calls.count; ++i) {
+			var gui = calls.getAt(i)
+			if (!gui || !gui.core) continue
+			var remote = gui.core.remoteAddress
+			if (remote === sipAddress) return gui
+			// Fall back to a username match: uri params may differ between the two addresses
+			var remoteUser = remote.split(":")[1]
+			remoteUser = remoteUser ? remoteUser.split("@")[0] : ""
+			if (user.length > 0 && remoteUser === user) return gui
+		}
+		return null
+	}
+	function isRinging(state) {
+		return state === LinphoneEnums.CallState.OutgoingInit
+			|| state === LinphoneEnums.CallState.OutgoingProgress
+			|| state === LinphoneEnums.CallState.OutgoingRinging
+			|| state === LinphoneEnums.CallState.OutgoingEarlyMedia
+	}
 
 	implicitHeight: confContent.implicitHeight + Utils.getSizeWithScreenRatio(20)
 	radius: Utils.getSizeWithScreenRatio(8)
@@ -60,14 +87,26 @@ Rectangle {
 				showMe: false
 			}
 			RowLayout {
+				id: row
 				Layout.fillWidth: true
 				spacing: Utils.getSizeWithScreenRatio(8)
+				// Re-evaluated whenever the call list changes (callCount) so a leg that
+				// answers, ends, or is added is picked up.
+				readonly property var leg: card.callCount >= 0 ? card.legFor(modelData.core.sipAddress) : null
+				readonly property bool ringing: !!(leg && leg.core && card.isRinging(leg.core.state))
 				Text {
 					Layout.fillWidth: true
 					text: modelData.core.displayName
 					font: Typography.p2
 					color: DefaultStyle.main2_600
 					elide: Text.ElideRight
+				}
+				Text {
+					visible: row.ringing
+					//: "Ringing…"
+					text: qsTr("singleview_participant_ringing")
+					font: Typography.p2
+					color: DefaultStyle.main2_400
 				}
 				SmallButton {
 					icon.source: AppIcons.closeX

@@ -2969,16 +2969,22 @@ Only your correspondent can decrypt them.</translation>
         <translation>Conference</translation>
     </message>
     <message>
-        <location filename="../../view/Page/SingleView/ConferenceCard.qml" line="48"/>
+        <location filename="../../view/Page/SingleView/ConferenceCard.qml" line="75"/>
         <source>singleview_end_conference</source>
         <extracomment>End conference</extracomment>
         <translation>End conference</translation>
     </message>
     <message>
-        <location filename="../../view/Page/SingleView/ConferenceCard.qml" line="62"/>
+        <location filename="../../view/Page/SingleView/ConferenceCard.qml" line="115"/>
         <source>singleview_remove_participant</source>
         <extracomment>Remove participant</extracomment>
         <translation>Remove participant</translation>
+    </message>
+    <message>
+        <location filename="../../view/Page/SingleView/ConferenceCard.qml" line="107"/>
+        <source>singleview_participant_ringing</source>
+        <extracomment>Ringing…</extracomment>
+        <translation>Ringing…</translation>
     </message>
 </context>
 <context>

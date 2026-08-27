@@ -153,6 +153,8 @@ ringing leg to the conference mixer and it becomes audible the moment it goes
 - Set `singleview_auto_merge=0` (factory or user `linphonerc`) to return to
   manual merging via the Merge button.
 
+Step-by-step pilot test script: `manual-test-auto-merge.md` (this directory).
+
 Provisioning note: an interim build shipped in August 2026 imported speed
 dials from a local vCard (`~/.npphone/speed-dial.vcf`, `X-SPEEDDIAL:N`). That
 importer never reached the source tree; the committed mechanism is the

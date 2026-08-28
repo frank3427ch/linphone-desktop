@@ -638,11 +638,17 @@ Fleet: the bundle is committed as `bins/NPPhone.app` in the
 also renders the per-station `linphonerc` (SIP account + `[ui] speed_dial_N`).
 See `docs/single-view/README.md` for the release steps.
 
-The build is **ad-hoc signed** — the playbook clears the quarantine xattr on
-each station. For distribution outside the managed fleet: sign with a Developer
-ID Application certificate
-(`-DLINPHONE_BUILDER_SIGNING_IDENTITY="Developer ID Application: ..."`),
-notarize (`xcrun notarytool submit --wait`), staple, then push via MDM.
+Since 2026-08-28 the build is signed with the self-signed identity **"NP Phone
+Signing"** (`-DLINPHONE_BUILDER_SIGNING_IDENTITY`, keychain
+`~/Library/Keychains/npphone-signing.keychain-db` on the build Mac, public
+cert in `cmake/install/macos/npphone-signing-cert.pem`). A stable identity is
+required so macOS keeps the microphone permission across builds — ad-hoc
+signatures made every deploy re-prompt, and a "Don't Allow" silenced the mic.
+Full setup/recreation steps: `docs/single-view/README.md` §2b. The playbook
+still clears the quarantine xattr on each station (cert is not Apple-issued).
+For distribution outside the managed fleet: sign with a Developer ID
+Application certificate instead, notarize (`xcrun notarytool submit --wait`),
+staple, then push via MDM.
 
 ## 7. Deliberately NOT changed
 

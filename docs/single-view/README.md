@@ -204,17 +204,83 @@ git -C external/linphone-sdk/liblinphone apply "$PWD/patches/sdk-server-conferen
 git -C external/linphone-sdk status --short   # expect: M liblinphone/src/conference/server-conference.cpp
 ```
 
+### 2b. Code-signing identity (one-time per build Mac)
+
+The bundle must be signed with a **stable identity**. With ad-hoc signing
+(`codesign -s -`, the default when no identity is given) every build has a
+different code hash, macOS treats each deploy as a new app and re-asks for
+microphone access on first launch; one *Don't Allow* leaves the app sending
+silence (r-np-007, 2026-08-28: voicemail "you have not left a message"). A
+self-signed certificate is enough: the designated requirement becomes
+`identifier "com.belledonnecommunications.linphone" and certificate root =
+H"<cert sha1>"`, which is identical for every build, so the TCC grant
+persists. (Gatekeeper still needs the quarantine xattr cleared — the playbook
+does that — since the cert is not Apple-issued.)
+
+The current certificate is **"NP Phone Signing"** (CN, O=Catapult Health,
+SHA-1 `C171C4EF7F38B72078966AB763A0FD5F26C9AB18`, valid 10 years from
+2026-08-28); its public half is committed as
+`cmake/install/macos/npphone-signing-cert.pem`. The private key lives only in
+the build Mac's keychain `~/Library/Keychains/npphone-signing.keychain-db`
+(password `npphone-signing`; it protects nothing but this self-signed key).
+**If that keychain is lost, generate a new certificate and expect one more
+microphone prompt fleet-wide** — there is no way to recover the key from the
+`.pem`.
+
+To recreate from scratch on a new build Mac (no GUI session needed):
+
+```bash
+cat > /tmp/cs.cnf <<'EOF'
+[req]
+distinguished_name = dn
+x509_extensions = v3
+prompt = no
+[dn]
+CN = NP Phone Signing
+O = Catapult Health
+[v3]
+basicConstraints = critical,CA:false
+keyUsage = critical,digitalSignature
+extendedKeyUsage = critical,codeSigning
+subjectKeyIdentifier = hash
+EOF
+openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -sha256 -config /tmp/cs.cnf \
+    -keyout /tmp/key.pem -out cmake/install/macos/npphone-signing-cert.pem
+openssl pkcs12 -export -legacy -inkey /tmp/key.pem -in cmake/install/macos/npphone-signing-cert.pem \
+    -name "NP Phone Signing" -out /tmp/cert.p12 -passout pass:npphone
+KC=~/Library/Keychains/npphone-signing.keychain-db
+security create-keychain -p npphone-signing $KC
+security set-keychain-settings $KC                      # never auto-lock
+security unlock-keychain -p npphone-signing $KC
+security import /tmp/cert.p12 -k $KC -P npphone -T /usr/bin/codesign -T /usr/bin/security
+security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k npphone-signing $KC
+security list-keychains -d user -s ~/Library/Keychains/login.keychain-db $KC
+rm -f /tmp/key.pem /tmp/cert.p12
+```
+
+`security find-identity -v -p codesigning` will report *0 valid identities*
+(no trust record — adding one needs a GUI session); `codesign` signs with it
+regardless. After a reboot the keychain is locked: run
+`security unlock-keychain -p npphone-signing $KC` before building.
+
 ### 3. Configure and build
 
 ```bash
 export Qt6_DIR="$HOME/Qt/6.10.3/macos/lib/cmake/Qt6"
 export PATH="$HOME/Qt/6.10.3/macos/bin:$PATH"
+security unlock-keychain -p npphone-signing ~/Library/Keychains/npphone-signing.keychain-db
 cmake -S . -B build \
       -DLINPHONEAPP_MACOS_ARCHS=arm64 \
       -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-      -DENABLE_APP_PACKAGING=OFF
+      -DENABLE_APP_PACKAGING=OFF \
+      -DLINPHONE_BUILDER_SIGNING_IDENTITY="NP Phone Signing"
 cmake --build build --parallel 10
 ```
+
+Signing runs in `cmake/install/sign_macos_app.sh` (`--timestamp --options
+runtime,library`, entitlements from `cmake/install/macos/entitlements.xml`).
+Check the result with `codesign -d -r- build/OUTPUT/macos/NPPhone.app` — the
+designated requirement must show `certificate root = H"c171c4ef…"`.
 
 - First build compiles the whole SDK (~2 h); later builds are incremental
   (`cmake --build build --parallel 10`).
@@ -232,8 +298,9 @@ cmake --build build --parallel 10
   are expected noise on a CLT-only machine.
 - macdeployqt `ERROR` lines about `libopenh264.6.dylib` are expected (codec
   excluded on purpose, downloaded at runtime).
-- Result: `build/OUTPUT/macos/NPPhone.app` (deployed via macdeployqt, ad-hoc
-  signed). The bundle folder is space-free by design (libvpx word-splits
+- Result: `build/OUTPUT/macos/NPPhone.app` (deployed via macdeployqt, signed
+  with "NP Phone Signing" — builds before 2026-08-28 were ad-hoc signed). The
+  bundle folder is space-free by design (libvpx word-splits
   install paths); Finder/Dock show "NP Phone" from `CFBundleDisplayName`.
 
 Sanity check before shipping:

@@ -1,13 +1,19 @@
 # NP Phone — Manual Test: Interpreter-First Auto-Merge
 
-**Build under test:** NP Phone `6.3.0-alpha.66+e0cb291a0` (linphone-desktop branch
-`simple`), deployed 2026-08-27 to pilot stations **np-025** (ext 1525n),
+**Build under test:** NP Phone `6.3.0-alpha.70+b03740182` (linphone-desktop branch
+`simple`), deployed 2026-08-28 to pilot stations **np-025** (ext 1525n),
 **r-np-007** (ext 1607n), **np-050** (ext 1550n) and **np-051** (ext 1551n).
 
-Fixes since the first pilot build (`.63`), both found on np-025:
-- `.65` — auto-merge did not fire (Propio went on hold, Merge had to be pressed).
+Fixes since the first pilot build (`.63`):
+- `.65` — auto-merge did not fire (Propio went on hold, Merge had to be pressed). *(np-025)*
 - `.66` — keyboard digits were typed into the dial field instead of being sent
-  as tones, and tones stopped working once calls were merged (section 7b).
+  as tones, and tones stopped working once calls were merged (section 7b). *(np-025)*
+- `.70` — same app code as `.66`, now **signed with a stable certificate**
+  ("NP Phone Signing") instead of ad-hoc. Root cause of the r-np-007
+  "voicemail could not hear me" report: each ad-hoc build re-asked for
+  microphone access and a *Don't Allow* silenced the mic. **Expect the
+  microphone prompt exactly once more** on first launch of this build (the
+  signature changed); click **Allow** (step 0.1a). Later builds keep the grant.
 
 **Feature under test:** when a call is already up and the agent dials another
 number, the new leg is conferenced automatically while it is still ringing
@@ -28,7 +34,7 @@ expected result is a Fail — note exactly what you saw.
 | 0.1a | **Microphone prompt.** On the first launch of every new build macOS asks *"NP Phone would like to access the microphone"*. Click **Allow**. | Prompt accepted. If it was ever answered *Don't Allow*, the far end hears **silence** on every call (voicemail says "you have not left a message") — fix in *System Settings → Privacy & Security → Microphone → NP Phone: on*, or re-run the deploy (`--tags linphone`), which resets a denied grant so the prompt reappears. |  |
 | 0.2 | Check the top of the panel. | Registration is **not** shown as failed (no red "registration failed" text). |  |
 | 0.3 | Look above the number pad. | Two speed-dial buttons: **Propio** and **Patient Support**. (If they are missing, stop — provisioning did not land; see "Troubleshooting".) |  |
-| 0.4 | Confirm the build. In Finder: `/Applications/NPPhone.app` → right-click → *Get Info* → Version. | `6.3.0-alpha.66+e0cb291a0` |  |
+| 0.4 | Confirm the build. In Finder: `/Applications/NPPhone.app` → right-click → *Get Info* → Version. | `6.3.0-alpha.70+b03740182` |  |
 | 0.5 | Have ready: (a) a headset on the station, (b) a **test "patient" phone** — a mobile with voicemail enabled whose number you know, (c) a second person or a second phone to act as an **incoming caller** for test 6. | — |  |
 
 > The "interpreter" leg in these tests is the real Propio line (speed dial 1,

@@ -122,6 +122,20 @@ real call. Requires build `6.3.0-alpha.66` or later (fix `e0cb291a0`).
 | 7b.4 | Press **Hold** on… (not available in conference — skip) / For a *single* call: put the call on hold, press a digit. | On hold the dialer switches to compose mode and the digit **is** typed into the field (no tone). Resume → DTMF mode again. |  |
 | 7b.5 | If an IVR still misreads digits: note whether the station uses the **built-in speakers and mic** rather than a headset. | Record it — the local key-tone playback can be picked up by an open mic and double-detected by the IVR; a headset avoids that. |  |
 
+## 7c. Transfer a conference participant (blind transfer)
+
+Requires build `6.3.0-alpha.72` or later. Each row of the conference card
+has a **Transfer** button (arrow icon, left of ✕). It is greyed out until a
+number is typed in the dial field, and while that leg is still ringing.
+
+| # | Step | Expected | Pass/Fail |
+|---|---|---|---|
+| 7c.1 | Set up a conference (Propio + test patient, patient answered). | 3-way audio; each row shows Transfer (greyed) and ✕. |  |
+| 7c.2 | Type a third number in the dial field (e.g. a colleague's phone) — **do not press Call**. | The Transfer buttons become enabled. Nothing is dialed. |  |
+| 7c.3 | Press **Transfer** on the **patient's** row. | The patient's phone is connected to the colleague's phone (colleague's phone rings, patient hears ringback). The patient's row leaves the conference card; *Propio* remains and agent + interpreter still hear each other. |  |
+| 7c.4 | Press **End conference**. | Empty dialer. The patient ↔ colleague call continues on its own. |  |
+| 7c.5 | Single-call regression: dial the test patient alone (no interpreter), answer, type a number, press Transfer on the **call card**. | Same blind transfer as before this change. |  |
+
 ## 8. Regression — single calls still behave normally
 
 | # | Step | Expected | Pass/Fail |

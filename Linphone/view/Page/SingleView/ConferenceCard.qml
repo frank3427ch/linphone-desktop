@@ -12,6 +12,8 @@ Rectangle {
 	// its state — a leg can be merged while still ringing (spec §5.3).
 	property var calls: null
 	readonly property int callCount: calls ? calls.count : 0
+	// Address typed in the dialer; target of the per-participant Transfer button
+	property string transferTarget: ""
 
 	function legFor(sipAddress) {
 		if (!calls || !sipAddress) return null
@@ -107,6 +109,21 @@ Rectangle {
 					text: qsTr("singleview_participant_ringing")
 					font: Typography.p2
 					color: DefaultStyle.main2_400
+				}
+				// Blind transfer of this leg to the address typed in the dialer (spec FR-8);
+				// the leg leaves the conference, the rest of the call continues.
+				SmallButton {
+					visible: !!row.leg
+					enabled: card.transferTarget.length > 0 && !row.ringing
+					icon.source: AppIcons.transferCall
+					icon.width: Utils.getSizeWithScreenRatio(16)
+					icon.height: Utils.getSizeWithScreenRatio(16)
+					Layout.preferredWidth: Utils.getSizeWithScreenRatio(34)
+					Layout.preferredHeight: Utils.getSizeWithScreenRatio(34)
+					style: ButtonStyle.secondary
+					//: "Transfer to the entered address"
+					Accessible.name: qsTr("singleview_transfer")
+					onClicked: row.leg.core.lTransferCall(card.transferTarget)
 				}
 				SmallButton {
 					icon.source: AppIcons.closeX

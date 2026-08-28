@@ -231,6 +231,7 @@ Item {
 			visible: mainPanel.haveConference
 			call: mainPanel.conferenceCall
 			calls: callsModel
+			transferTarget: mainPanel.dialedText
 		}
 
 		// REGION 4: dialer

@@ -25,6 +25,7 @@ expected result is a Fail — note exactly what you saw.
 | # | Step | Expected | Pass/Fail |
 |---|---|---|---|
 | 0.1 | Log in as the NP user (`catanp`) and open **NP Phone** from the Dock. | Single-view window (fixed width). Footer shows the audio device. No error banner at the top. |  |
+| 0.1a | **Microphone prompt.** On the first launch of every new build macOS asks *"NP Phone would like to access the microphone"*. Click **Allow**. | Prompt accepted. If it was ever answered *Don't Allow*, the far end hears **silence** on every call (voicemail says "you have not left a message") — fix in *System Settings → Privacy & Security → Microphone → NP Phone: on*, or re-run the deploy (`--tags linphone`), which resets a denied grant so the prompt reappears. |  |
 | 0.2 | Check the top of the panel. | Registration is **not** shown as failed (no red "registration failed" text). |  |
 | 0.3 | Look above the number pad. | Two speed-dial buttons: **Propio** and **Patient Support**. (If they are missing, stop — provisioning did not land; see "Troubleshooting".) |  |
 | 0.4 | Confirm the build. In Finder: `/Applications/NPPhone.app` → right-click → *Get Info* → Version. | `6.3.0-alpha.66+e0cb291a0` |  |

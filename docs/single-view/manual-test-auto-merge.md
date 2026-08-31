@@ -1,6 +1,6 @@
 # NP Phone — Manual Test: Interpreter-First Auto-Merge
 
-**Build under test:** NP Phone `6.3.0-alpha.75+d18ee749d` (linphone-desktop branch
+**Build under test:** NP Phone `6.3.0-alpha.77+6300d8574` (linphone-desktop branch
 `simple`), deployed 2026-08-31 to pilot stations **np-025** (ext 1525n),
 **r-np-007** (ext 1607n), **np-050** (ext 1550n) and **np-051** (ext 1551n).
 
@@ -19,6 +19,9 @@ Fixes since the first pilot build (`.63`):
 - `.75` — fixes `.70`/`.73` **crashing at launch** (hardened-runtime library
   validation rejected the team-less self-signed signature; signing no longer
   enables hardened runtime). Same app code as `.73`.
+- `.77` — RFC 2833 DTMF events lengthened from 100 ms to 200 ms (SDK patch):
+  Propio intermittently ignored the shorter tones even though every press was
+  sent correctly (np-025 log analysis, 2026-08-31). Re-run section 7b.
 
 **Feature under test:** when a call is already up and the agent dials another
 number, the new leg is conferenced automatically while it is still ringing
@@ -39,7 +42,7 @@ expected result is a Fail — note exactly what you saw.
 | 0.1a | **Microphone prompt.** On the first launch of every new build macOS asks *"NP Phone would like to access the microphone"*. Click **Allow**. | Prompt accepted. If it was ever answered *Don't Allow*, the far end hears **silence** on every call (voicemail says "you have not left a message") — fix in *System Settings → Privacy & Security → Microphone → NP Phone: on*, or re-run the deploy (`--tags linphone`), which resets a denied grant so the prompt reappears. |  |
 | 0.2 | Check the top of the panel. | Registration is **not** shown as failed (no red "registration failed" text). |  |
 | 0.3 | Look above the number pad. | Two speed-dial buttons: **Propio** and **Patient Support**. (If they are missing, stop — provisioning did not land; see "Troubleshooting".) |  |
-| 0.4 | Confirm the build. In Finder: `/Applications/NPPhone.app` → right-click → *Get Info* → Version. | `6.3.0-alpha.75+d18ee749d` |  |
+| 0.4 | Confirm the build. In Finder: `/Applications/NPPhone.app` → right-click → *Get Info* → Version. | `6.3.0-alpha.77+6300d8574` |  |
 | 0.5 | Have ready: (a) a headset on the station, (b) a **test "patient" phone** — a mobile with voicemail enabled whose number you know, (c) a second person or a second phone to act as an **incoming caller** for test 6. | — |  |
 
 > The "interpreter" leg in these tests is the real Propio line (speed dial 1,

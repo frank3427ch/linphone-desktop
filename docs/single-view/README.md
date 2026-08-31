@@ -199,9 +199,12 @@ git submodule update --init --recursive -- external/linphone-sdk
 # gitlab.linphone.org flaps: repeat until clean, then verify no EMPTY worktrees
 git submodule update --init --recursive --force -- external/linphone-sdk
 git submodule foreach --recursive --quiet 'test -n "$(ls)" || echo "EMPTY: $displaypath"'
-# SDK patch — re-apply after EVERY submodule update, before building
+# SDK patches — re-apply after EVERY submodule update, before building
 git -C external/linphone-sdk/liblinphone apply "$PWD/patches/sdk-server-conference-pbx-contact.patch"
-git -C external/linphone-sdk status --short   # expect: M liblinphone/src/conference/server-conference.cpp
+git -C external/linphone-sdk apply "$PWD/patches/sdk-msrtp-dtmf-duration.patch"
+git -C external/linphone-sdk status --short
+# expect: M liblinphone/src/conference/server-conference.cpp
+#         M mediastreamer2/src/otherfilters/msrtp.c
 ```
 
 ### 2b. Code-signing identity (one-time per build Mac)

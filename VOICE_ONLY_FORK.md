@@ -530,6 +530,17 @@ git -C external/linphone-sdk status --short   # expect: M liblinphone/src/confer
 
 Verified to apply cleanly on SDK 5.5.16 (`4bb4159ac`).
 
+**Second SDK patch — `patches/sdk-msrtp-dtmf-duration.patch`** (mediastreamer2
+submodule, `src/otherfilters/msrtp.c`): raises the outgoing RFC 2833 DTMF
+event duration from 100 ms to 200 ms. 100 ms events were unreliably detected
+by PSTN IVRs (Propio) behind the SpectrumVoIP relay — presses reached the
+wire correctly but were intermittently ignored (2026-08-31, np-025). Apply
+after every submodule update, before building:
+
+```bash
+git -C external/linphone-sdk apply "$PWD/patches/sdk-msrtp-dtmf-duration.patch"
+```
+
 ## 6. Build environment (Apple Silicon macOS)
 
 Tested on macOS 26 / arm64 with **Command Line Tools only** (no full Xcode —

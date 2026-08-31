@@ -1,0 +1,22 @@
+diff --git a/mediastreamer2/src/otherfilters/msrtp.c b/mediastreamer2/src/otherfilters/msrtp.c
+index fb26180781..e4207ef321 100644
+--- a/mediastreamer2/src/otherfilters/msrtp.c
++++ b/mediastreamer2/src/otherfilters/msrtp.c
+@@ -33,7 +33,7 @@
+ #endif
+ #include "mediastreamer2/stun.h"
+ 
+-static const int default_dtmf_duration_ms = 100; /*in milliseconds*/
++static const int default_dtmf_duration_ms = 200; /*in milliseconds. NP Phone: 200 (was 100) — short events were unreliably detected by PSTN IVRs (Propio) behind the SpectrumVoIP relay*/
+ 
+ struct SenderData {
+ 	RtpSession *session;
+@@ -132,7 +132,7 @@ static void sender_init(MSFilter *f) {
+ 	d->skip = FALSE;
+ 	d->rate = 8000;
+ 	d->dtmf = 0;
+-	d->dtmf_duration = 800;
++	d->dtmf_duration = 1600; /* NP Phone: 200ms at the initial 8kHz rate (was 800 = 100ms) */
+ 	d->dtmf_ts_step = 160;
+ 	d->mute = FALSE;
+ 	d->relay_session_id_size = 0;

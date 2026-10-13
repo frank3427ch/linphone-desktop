@@ -62,7 +62,6 @@ Item {
 			Layout.fillHeight: true
             Layout.preferredWidth: Utils.getSizeWithScreenRatio(300)
             Layout.rightMargin: Utils.getSizeWithScreenRatio(10)
-            Layout.bottomMargin: Utils.getSizeWithScreenRatio(10)
 			visible: allDevices.count > 2 || !!mainItem.conference?.core.isScreenSharingEnabled
             //spacing: Utils.getSizeWithScreenRatio(15)	// bugged? First item has twice margins
 			model: allDevices
@@ -74,7 +73,7 @@ Item {
                 height: visible ? Utils.getSizeWithScreenRatio(180 + 15) : 0
                 width: Utils.getSizeWithScreenRatio(300)
 				Sticker {
-					previewEnabled: false//participantDevice.isMe // index == 0 && !mainItem.conference?.core.isScreenSharingEnabled	// before anchors for priority initialization
+					previewEnabled: participantDevice.isMe // index == 0 && !mainItem.conference?.core.isScreenSharingEnabled	// before anchors for priority initialization
 					anchors.fill: parent
                     anchors.bottomMargin: Utils.getSizeWithScreenRatio(15)// Spacing
 					qmlName: 'S_'+index

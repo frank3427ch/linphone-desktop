@@ -197,12 +197,12 @@ void SettingsModel::accessCallSettings() {
 
 	// Audio
 	CoreModel::getInstance()->getCore()->reloadSoundDevices();
-	emit captureDevicesChanged(getCaptureDevices());
-	emit playbackDevicesChanged(getPlaybackDevices());
 	emit playbackDeviceChanged(getPlaybackDevice());
-	emit ringerDevicesChanged(getRingerDevices());
+	emit playbackDevicesChanged(getPlaybackDevices());
 	emit ringerDeviceChanged(getRingerDevice());
+	emit ringerDevicesChanged(getRingerDevices());
 	emit captureDeviceChanged(getCaptureDevice());
+	emit captureDevicesChanged(getCaptureDevices());
 	emit playbackGainChanged(getPlaybackGain());
 	emit captureGainChanged(getCaptureGain());
 }
@@ -211,12 +211,12 @@ void SettingsModel::updateCallSettings() {
 	mustBeInLinphoneThread(log().arg(Q_FUNC_INFO));
 
 	// Audio
-	emit captureDevicesChanged(getCaptureDevices());
-	emit playbackDevicesChanged(getPlaybackDevices());
 	emit playbackDeviceChanged(getPlaybackDevice());
-	emit ringerDevicesChanged(getRingerDevices());
+	emit playbackDevicesChanged(getPlaybackDevices());
 	emit ringerDeviceChanged(getRingerDevice());
+	emit ringerDevicesChanged(getRingerDevices());
 	emit captureDeviceChanged(getCaptureDevice());
+	emit captureDevicesChanged(getCaptureDevices());
 	emit playbackGainChanged(getPlaybackGain());
 	emit captureGainChanged(getCaptureGain());
 }
@@ -358,13 +358,17 @@ QVariantMap SettingsModel::getCaptureDevice() const {
 void SettingsModel::setCaptureDevice(const QVariantMap &device) {
 	mustBeInLinphoneThread(log().arg(Q_FUNC_INFO));
 	lInfo() << log().arg("Trying to set capture device with id :") << device["id"];
+	auto currentDevice = getCaptureDevice();
+	if (currentDevice["id"] == device["id"]) {
+		lWarning() << log().arg("Trying to set capture device that is the current one :") << device["id"] << "; return";
+		return;
+	}
 	auto audioDevice =
 	    ToolModel::findAudioDevice(device["id"].toString(), linphone::AudioDevice::Capabilities::CapabilityRecord);
 	if (audioDevice) {
 		lInfo() << log().arg("Set capture device") << device["id"];
 		CoreModel::getInstance()->getCore()->setDefaultInputAudioDevice(audioDevice);
 		CoreModel::getInstance()->getCore()->setInputAudioDevice(audioDevice);
-		emit captureDeviceChanged(device);
 		resetCaptureGraph();
 	} else {
 		//: "Cannot set Capture device. The ID cannot be matched with an existant device : %1"
@@ -430,13 +434,18 @@ QVariantMap SettingsModel::getPlaybackDevice() const {
 void SettingsModel::setPlaybackDevice(const QVariantMap &device) {
 	mustBeInLinphoneThread(log().arg(Q_FUNC_INFO));
 	lInfo() << log().arg("Trying to set playback device with id :") << device["id"];
+	auto currentDevice = getPlaybackDevice();
+	if (currentDevice["id"] == device["id"]) {
+		lWarning() << log().arg("Trying to set playback device that is the current one :") << device["id"]
+		           << "; return";
+		return;
+	}
 	auto audioDevice =
 	    ToolModel::findAudioDevice(device["id"].toString(), linphone::AudioDevice::Capabilities::CapabilityPlay);
 	if (audioDevice) {
 		lInfo() << log().arg("Set playback device") << device["id"];
 		CoreModel::getInstance()->getCore()->setDefaultOutputAudioDevice(audioDevice);
 		CoreModel::getInstance()->getCore()->setOutputAudioDevice(audioDevice);
-		emit playbackDeviceChanged(device);
 		resetCaptureGraph();
 	} else lWarning() << "Cannot set Playback device. The ID cannot be matched with an existant device : " << device;
 }
@@ -1083,6 +1092,7 @@ void SettingsModel::setDownloadFolder(const QString &downloadFolder) {
 // clang-format off
 void SettingsModel::notifyConfigReady(){
 	DEFINE_NOTIFY_CONFIG_READY(disableChatFeature, DisableChatFeature)
+	DEFINE_NOTIFY_CONFIG_READY(hideNotificationCounter, HideNotificationCounter)
 	emit disableMeetingsFeatureChanged();
 	DEFINE_NOTIFY_CONFIG_READY(hideSettings,HideSettings)
 	DEFINE_NOTIFY_CONFIG_READY(hideAccountSettings, HideAccountSettings)
@@ -1114,6 +1124,7 @@ void SettingsModel::notifyConfigReady(){
 }
 
 DEFINE_GETSET_CONFIG(SettingsModel, bool, Bool, disableChatFeature, DisableChatFeature, "disable_chat_feature", false)
+DEFINE_GETSET_CONFIG(SettingsModel, bool, Bool, hideNotificationCounter, HideNotificationCounter, "hide_systray_notification_counter", false)
 DEFINE_GETSET_CONFIG(SettingsModel,
 						bool,
 						Bool,

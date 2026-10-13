@@ -250,13 +250,8 @@ AbstractMainPage {
 					focus: true
 
 					searchBarText: searchBar.text
-
-					onHaveCurrentDateChanged: {
-						mainItem.listHasNoItem = count === 0 || (count === 1 && !haveCurrentDate)
-					}
-					onCountChanged: {
-						mainItem.listHasNoItem = count === 0 || (count === 1 && !haveCurrentDate)
-					}
+					property bool listIsEmpty: count === 0 || (count === 1 && !haveCurrentDate)
+					onListIsEmptyChanged: mainItem.listHasNoItem = listIsEmpty
 					Binding {
 						target: mainItem
 						property: "showDefaultItem"
@@ -849,31 +844,6 @@ AbstractMainPage {
 								Layout.fillWidth: true
 								font {
 									pixelSize: Utils.getSizeWithScreenRatio(14)
-								}
-							}
-						}
-					}
-					Section {
-						Layout.fillWidth: true
-						content: RowLayout {
-							spacing: Utils.getSizeWithScreenRatio(8)
-							EffectImage {
-								Layout.preferredWidth: Utils.getSizeWithScreenRatio(24)
-								Layout.preferredHeight: Utils.getSizeWithScreenRatio(24)
-								imageSource: AppIcons.userRectangle
-								colorizationColor: DefaultStyle.main2_600
-							}
-							Avatar {
-								Layout.preferredWidth: Utils.getSizeWithScreenRatio(45)
-								Layout.preferredHeight: Utils.getSizeWithScreenRatio(45)
-								_address: mainItem.selectedConference && mainItem.selectedConference.core ? mainItem.selectedConference.core.organizerAddress : ""
-								secured: friendSecurityLevel === LinphoneEnums.SecurityLevel.EndToEndEncryptedAndVerified
-							}
-							Text {
-								text: mainItem.selectedConference && mainItem.selectedConference.core ? mainItem.selectedConference.core.organizerName : ""
-								font {
-									pixelSize: Utils.getSizeWithScreenRatio(14)
-									capitalization: Font.Capitalize
 								}
 							}
 						}

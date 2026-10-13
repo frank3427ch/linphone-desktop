@@ -93,6 +93,15 @@ ConferenceInfoCore::ConferenceInfoCore(std::shared_ptr<linphone::ConferenceInfo>
 			participant["role"] = (int)LinphoneEnums::fromLinphone(item->getRole());
 			mParticipants.append(participant);
 		}
+		auto organizer = conferenceInfo->getOrganizerInfo();
+		auto organizerAddress = Utils::coreStringToAppString(organizer->getAddress()->asStringUriOnly());
+		auto orgaIndex = getParticipantIndex(organizerAddress);
+		if (orgaIndex == -1) {
+			QVariantMap participant;
+			participant["role"] = (int)LinphoneEnums::fromLinphone(organizer->getRole());
+			participant["address"] = organizerAddress;
+			mParticipants.append(participant);
+		}
 		mConferenceInfoState = LinphoneEnums::fromLinphone(conferenceInfo->getState());
 	} else {
 		mDateTime = QDateTime::currentDateTime();
@@ -610,9 +619,13 @@ void ConferenceInfoCore::save() {
 			} else lCritical() << "No default account";
 			// Add text capability for chat in conf
 			linphoneConf->setCapability(linphone::StreamType::Text, true);
-			if (SettingsModel::getInstance()->getCreateEndToEndEncryptedMeetingsAndGroupCalls())
+			if (SettingsModel::getInstance()->getCreateEndToEndEncryptedMeetingsAndGroupCalls()) {
+				lInfo() << log().arg("create end2end encrypted meeting enabled, set end to end security level");
 				linphoneConf->setSecurityLevel(linphone::Conference::SecurityLevel::EndToEnd);
-			else linphoneConf->setSecurityLevel(linphone::Conference::SecurityLevel::PointToPoint);
+			} else {
+				lInfo() << log().arg("create end2end encrypted meeting disabled, set point to point security level");
+				linphoneConf->setSecurityLevel(linphone::Conference::SecurityLevel::PointToPoint);
+			}
 			auto confInfoModel = Utils::makeQObject_ptr<ConferenceInfoModel>(linphoneConf);
 			auto confSchedulerModel = confInfoModel->getConferenceScheduler();
 			if (!confSchedulerModel) {

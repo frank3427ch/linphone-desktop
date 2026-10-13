@@ -51,10 +51,10 @@ CameraGui::~CameraGui() {
 	mustBeInMainThread("~" + getClassName());
 	mRefreshTimer.stop();
 	if (mIsPreview) {
-		lDebug() << "[CameraGui] Deactivation";
+		lInfo() << "[CameraGui] Deactivation";
 		App::postModelBlock([] { CoreModel::getInstance()->getCore()->enableVideoPreview(false); });
 	}
-	// setWindowIdLocation(None);
+	setWindowIdLocation(None);
 }
 
 // Hack for Qt constness on create Renderer.
@@ -82,7 +82,7 @@ void CameraGui::clearRenderer() {
 
 QQuickFramebufferObject::Renderer *CameraGui::createRenderer() const {
 	QQuickFramebufferObject::Renderer *renderer = NULL;
-	lDebug() << log().arg("CreateRenderer");
+	lInfo() << log().arg("CreateRenderer");
 
 	// A renderer is mandatory, we cannot wait async.
 	switch (getSourceLocation()) {
@@ -147,7 +147,7 @@ void CameraGui::updateSDKRenderer() {
 }
 
 void CameraGui::updateSDKRenderer(QQuickFramebufferObject::Renderer *renderer) {
-	lDebug() << log().arg("Apply Qt Renderer to SDK") << renderer;
+	lInfo() << log().arg("Apply Qt Renderer to SDK") << renderer;
 	switch (getSourceLocation()) {
 		case CorePreview: {
 			App::postModelBlock([qmlName = mQmlName, renderer]() {
@@ -209,7 +209,7 @@ bool CameraGui::getIsReady() const {
 }
 void CameraGui::setIsReady(bool isReady) {
 	if (mIsReady != isReady) {
-		lDebug() << log().arg("Set IsReady") << isReady;
+		lInfo() << log().arg("Set IsReady") << isReady;
 		mIsReady = isReady;
 		emit isReadyChanged(mIsReady);
 	}
@@ -229,7 +229,7 @@ void CameraGui::setIsPreview(bool status) {
 		mIsPreview = status;
 		// We block it to serialize the action and allow only one CameraGui to change the state.
 		App::postModelBlock([status]() {
-			lDebug() << "[CameraGui] " << (status ? "Activation" : "Deactivation");
+			lInfo() << "[CameraGui] " << (status ? "Activation" : "Deactivation");
 			CoreModel::getInstance()->getCore()->enableVideoPreview(status);
 		});
 		updateWindowIdLocation();
@@ -245,10 +245,16 @@ CallGui *CameraGui::getCallGui() const {
 
 void CameraGui::setCallGui(CallGui *callGui) {
 	if (mCallGui != callGui) {
-		if (mCallGui) disconnect(mCallGui->getCore(), &CallCore::stateChanged, this, &CameraGui::callStateChanged);
+		if (mCallGui) {
+			disconnect(mCallGui->getCore(), &CallCore::stateChanged, this, &CameraGui::callStateChanged);
+			disconnect(mCallGui, &CallGui::destroyed, this, &CameraGui::removeCallGui);
+		}
 		mCallGui = callGui;
-		if (mCallGui) connect(mCallGui->getCore(), &CallCore::stateChanged, this, &CameraGui::callStateChanged);
-		lDebug() << log().arg("Set Call") << mCallGui;
+		if (mCallGui) {
+			connect(mCallGui->getCore(), &CallCore::stateChanged, this, &CameraGui::callStateChanged);
+			disconnect(mCallGui, &CallGui::destroyed, this, &CameraGui::removeCallGui);
+		}
+		lInfo() << log().arg("Set Call") << mCallGui;
 		emit callGuiChanged(mCallGui);
 		updateWindowIdLocation();
 	}
@@ -260,9 +266,16 @@ ParticipantDeviceGui *CameraGui::getParticipantDeviceGui() const {
 
 void CameraGui::setParticipantDeviceGui(ParticipantDeviceGui *deviceGui) {
 	if (mParticipantDeviceGui != deviceGui) {
+		if (mParticipantDeviceGui) {
+			disconnect(mParticipantDeviceGui, &ParticipantDeviceGui::destroyed, this,
+			           &CameraGui::removeParticipantDeviceGui);
+		}
 		mParticipantDeviceGui = deviceGui;
-		lDebug() << log().arg("Set Device") << mParticipantDeviceGui;
-		// setIsPreview(mParticipantDeviceGui->getCore()->isLocal());
+		if (mParticipantDeviceGui) {
+			connect(mParticipantDeviceGui, &ParticipantDeviceGui::destroyed, this,
+			        &CameraGui::removeParticipantDeviceGui);
+		}
+		lInfo() << log().arg("Set Device") << mParticipantDeviceGui;
 		emit participantDeviceGuiChanged(mParticipantDeviceGui);
 		updateWindowIdLocation();
 	}
@@ -285,15 +298,25 @@ void CameraGui::setPlayerGui(SoundPlayerGui *playerGui) {
 			if (mPlayerGui->getCore())
 				connect(mPlayerGui->getCore(), &SoundPlayerCore::modelRebuilt, this, &CameraGui::onPlayerRebuilt);
 		}
-		lDebug() << log().arg("Set Player") << mPlayerGui;
+		lInfo() << log().arg("Set Player") << mPlayerGui;
 		emit playerGuiChanged(mPlayerGui);
 		updateWindowIdLocation();
 	}
 }
 
+void CameraGui::removeCallGui() {
+	mCallGui = nullptr;
+	setWindowIdLocation(WindowIdLocation::None);
+}
+
 void CameraGui::removePlayerGui() {
 	mPlayerGui = nullptr;
 	setWindowIdLocation(WindowIdLocation::None);
+}
+
+void CameraGui::removeParticipantDeviceGui() {
+	mParticipantDeviceGui = nullptr;
+	updateWindowIdLocation();
 }
 
 void CameraGui::onPlayerRebuilt() {
@@ -306,12 +329,13 @@ CameraGui::WindowIdLocation CameraGui::getSourceLocation() const {
 
 void CameraGui::setWindowIdLocation(const WindowIdLocation &location) {
 	if (mWindowIdLocation != location) {
-		lDebug() << log().arg("Update Window Id location from %2 to %3").arg(mWindowIdLocation).arg(location);
+		lInfo() << log().arg("Update Window Id location from %2 to %3").arg(mWindowIdLocation).arg(location);
 		resetWindowId();
 		mWindowIdLocation = location;
 		updateSDKRenderer();
 	}
 }
+
 void CameraGui::updateWindowIdLocation() {
 	bool useDefaultWindow = true;
 	if (mPlayerGui) setWindowIdLocation(WindowIdLocation::Player);
@@ -325,7 +349,7 @@ void CameraGui::updateWindowIdLocation() {
 void CameraGui::callStateChanged(LinphoneEnums::CallState state) {
 	if (getSourceLocation() == CorePreview && state == LinphoneEnums::CallState::Connected) {
 		if (!getIsReady()) {
-			lDebug() << log().arg("Request new renderer because of not being Ready on CallState as Connected");
+			lInfo() << log().arg("Request new renderer because of not being Ready on CallState as Connected");
 			emit requestNewRenderer();
 		}
 	}

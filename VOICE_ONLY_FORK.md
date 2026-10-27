@@ -23,6 +23,28 @@ enough detail to reproduce the fork from a clean upstream checkout.
   `external/feature-specs` (`gitlab.linphone.org:BC/private/linphone-test-specs`,
   Squish BDD specs only) — it cannot be cloned without BC credentials and is
   not needed to build; see §6.2.
+- **Upstream-sync notes (2026-10-27):** upstream `master` was 121 commits
+  ahead (merge base `1d3d5ba6c`, "update SDK to 5.5.16"). A wholesale merge
+  is not viable (14 files conflict, `CallsWindow.qml` was reworked upstream by
+  the new DTMF pad popup). Instead six fixes were cherry-picked with `-x`:
+  the audio-device selection loop / blinking device lists during a call
+  (`361feb692`, `65085c7f4`, `68d41187f`, `f76b5bcf9`), live playback/capture
+  gain without pressing save (`84d55d8b9`), and the call-duration timer
+  starting on an already-connected call (`02a36dc43`, resolved by dropping the
+  upstream `mDtmfTimer` context lines — the fork has no DTMF queue).
+  **Skipped on purpose:** `c7f0e5722` (numeric pad crash on reopen) removes
+  the built-in `onButtonPressed → lSendDtmf` handler from `NumericPad.qml`;
+  the single-view `DialerArea.qml` relies on that handler to reach the first
+  DTMF target, and the crash is in `CallsWindow`, which this fork never
+  instantiates. **SDK bump not done:** upstream release 6.2.4 pins SDK 5.5.36
+  (master: 5.5.39). Both `patches/` apply cleanly on 5.5.36, but every tag
+  after 5.5.16 moves the nested `external/rnnoise` (and from 5.5.24
+  `external/xerces-c`, from 5.5.35 `external/mbedtls`) submodules to commits
+  served only by `gitlab.linphone.org`, which was unreachable on 2026-10-27.
+  To finish it when the host is back: `git -C external/linphone-sdk checkout
+  5.5.36 && git -C external/linphone-sdk submodule update --init --recursive`,
+  re-apply `patches/`, full rebuild (~2 h), then commit the submodule pointer
+  and update the pinned baseline in `docs/single-view/README.md`.
 - **Product goals:** SIP audio calling only; no chat, no video, no meetings UI;
   simplified UI (dialer, call history, contacts); mandatory SRTP; numbers and
   contact names shown instead of SIP URIs; in-call usability additions

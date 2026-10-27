@@ -57,14 +57,16 @@ AbstractMainPage {
         }
     }
 
-    onSelectedRowHistoryGuiChanged: {
-        if (selectedRowHistoryGui)
-            rightPanelStackView.replace(contactDetailComp,
-                                        Control.StackView.Immediate)
-        else
-            rightPanelStackView.replace(emptySelection,
-                                        Control.StackView.Immediate)
+    function updateRightPanel() {
+        var showDetail = !!selectedRowHistoryGui
+        var current = rightPanelStackView.currentItem
+        var showingDetail = !!current && current.objectName === "callHistoryDetail"
+        if (showDetail === showingDetail)
+            return
+        rightPanelStackView.replace(null, showDetail ? contactDetailComp : emptySelection, {},
+                                    Control.StackView.Immediate)
     }
+    onSelectedRowHistoryGuiChanged: Qt.callLater(updateRightPanel)
     rightPanelStackView.initialItem: emptySelection
     rightPanelStackView.width: Utils.getSizeWithScreenRatio(360)
 
@@ -142,6 +144,14 @@ AbstractMainPage {
             objectName: "historyListItem"
             property alias listView: historyListView
             property alias newCallButton: newCallButton
+            Control.StackView.onActivated: filterTabBar.currentIndex = 0
+            Connections {
+                target: mainItem
+                function onVisibleChanged() {
+                    if (mainItem.visible)
+                        filterTabBar.currentIndex = 0
+                }
+            }
 
             ColumnLayout {
                 anchors.fill: parent
@@ -154,6 +164,8 @@ AbstractMainPage {
                     Layout.rightMargin: Utils.getSizeWithScreenRatio(39)
                     Layout.fillHeight: false
                     Text {
+                        Accessible.role: Accessible.Heading
+                        Accessible.name: text
                         Layout.fillWidth: true
                         //: "Appels"
                         text: qsTr("call_history_call_list_title")
@@ -221,14 +233,20 @@ AbstractMainPage {
                     Layout.rightMargin: Utils.getSizeWithScreenRatio(39)
                     //: "Rechercher un appel"
                     placeholderText: qsTr("call_search_in_history")
-                    visible: historyListView.count !== 0 || text.length !== 0
+                    visible: historyListView.count !== 0 || text.length !== 0 || filterTabBar.currentIndex !== 0
                     focus: true
                     KeyNavigation.up: newCallButton
-                    KeyNavigation.down: historyListView
+                    KeyNavigation.down: filterTabBar.currentItem
                     Binding {
                         target: mainItem
                         property: "showDefaultItem"
                         when: searchBar.text.length != 0
+                        value: false
+                    }
+                    Binding {
+                        target: mainItem
+                        property: "showDefaultItem"
+                        when: filterTabBar.currentIndex !== 0
                         value: false
                     }
                     Keys.onPressed: (event) => {
@@ -236,6 +254,22 @@ AbstractMainPage {
                             mainItem.createCallFromSearchBarRequested()
                         }
                     }
+                }
+                TabBar {
+                    id: filterTabBar
+                    Layout.fillWidth: true
+                    Layout.topMargin: Utils.getSizeWithScreenRatio(18)
+                    Layout.rightMargin: Utils.getSizeWithScreenRatio(39)
+                    visible: searchBar.visible
+                    spacing: 0
+                    equalTabWidth: true
+                    pixelSize: Typography.p2l.pixelSize
+                    textWeight: Typography.p2l.weight
+                    capitalization: Font.MixedCase
+                    model: [qsTr("history_list_filter_all"), qsTr("history_list_filter_missed")]
+                    Accessible.name: qsTr("history_list_filter_accessible_name")
+                    KeyNavigation.up: searchBar
+                    KeyNavigation.down: historyListView
                 }
                 Button {
                     visible: SettingsCpp.callForwardToAddress.length > 0 && !SettingsCpp.disableCallForward
@@ -280,6 +314,7 @@ AbstractMainPage {
                                 //: "Aucun résultat…"
                                 text: searchBar.text.length != 0 ? qsTr("list_filter_no_result_found")
                                                                    //: "Aucun appel dans votre historique"
+                                                                 : filterTabBar.currentIndex !== 0 ? qsTr("history_list_empty_missed_history")
                                                                  : qsTr("history_list_empty_history")
                                 font {
                                     pixelSize: Typography.h4.pixelSize
@@ -288,10 +323,17 @@ AbstractMainPage {
                             }
                             CallHistoryListView {
                                 id: historyListView
+                                onContextMenuRequested: origin => Qt.callLater(function() {
+                                    var detail = mainItem.rightPanelStackView.currentItem
+                                    if (detail && detail.openOptions)
+                                        detail.openOptions(origin)
+                                })
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
                                 Layout.topMargin: Utils.getSizeWithScreenRatio(38)
                                 searchBar: searchBar
+                                navigationUpItem: filterTabBar.currentItem
+                                filterType: filterTabBar.currentIndex === 1 ? CallHistoryProxy.Missed : CallHistoryProxy.All
                                 Control.ScrollBar.vertical: scrollbar
 
                                 Connections {
@@ -369,6 +411,8 @@ AbstractMainPage {
                         }
                     }
                     Text {
+                        Accessible.role: Accessible.Heading
+                        Accessible.name: text
                         Layout.fillWidth: true
                         //: "Nouvel appel"
                         text: qsTr("call_action_start_new_call")
@@ -445,6 +489,42 @@ AbstractMainPage {
     Component {
         id: contactDetailComp
         FocusScope {
+            id: callHistoryDetail
+            objectName: "callHistoryDetail"
+            property var optionsOrigin: null
+            function openOptions(origin) {
+                optionsOrigin = origin || null
+                detailOptions.openedWithKeyboard = true
+                detailOptions.open()
+            }
+            Connections {
+                target: detailOptions.popup
+                property bool menuHadFocus: false
+                property bool menuFocusedByKeyboard: false
+                function onAboutToHide() {
+                    menuHadFocus = detailOptions.popup.activeFocus
+                    menuFocusedByKeyboard = detailOptions.restoreWithKeyboard
+                    var origin = callHistoryDetail.optionsOrigin
+                    if (menuHadFocus && origin && origin.visible)
+                        detailOptions.restoreFocusOnClose = false
+                }
+                function onClosed() {
+                    var origin = callHistoryDetail.optionsOrigin
+                    callHistoryDetail.optionsOrigin = null
+                    if (!menuHadFocus)
+                        return
+                    menuHadFocus = false
+                    var reason = menuFocusedByKeyboard ? Qt.TabFocusReason : Qt.MouseFocusReason
+                    var current = detailOptions.Window.activeFocusItem
+                    var focusLost = !current || current === detailOptions || current === detailOptions.Window.contentItem
+                    if (origin && origin.visible) {
+                        if (focusLost || current === origin)
+                            origin.forceActiveFocus(reason)
+                    } else if (focusLost && detailOptions.visible) {
+                        detailOptions.forceActiveFocus(reason)
+                    }
+                }
+            }
             CallHistoryLayout {
                 id: contactDetail
                 anchors.fill: parent
@@ -461,9 +541,12 @@ AbstractMainPage {
 
                 buttonContent: PopupButton {
                     id: detailOptions
+                    objectName: "callHistoryOptionsButton"
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
-                    popUpTitle: qsTr("call_history_options_accessible_name")
+                    Accessible.name: contactDetail.contactName
+                                     ? qsTr("call_history_contact_options_accessible_name").arg(contactDetail.contactName)
+                                     : qsTr("call_history_options_accessible_name")
                     popup.x: width
                     popup.contentItem: FocusScope {
                         implicitHeight: detailsButtons.implicitHeight
@@ -649,7 +732,7 @@ AbstractMainPage {
                                                     }
                                                 Text {
                                                     //: "Appel manqué"
-                                                    text: modelData.core.status === LinphoneEnums.CallStatus.Missed ? qsTr("notification_missed_call_title")
+                                                    text: modelData.core.isMissed ? qsTr("notification_missed_call_title")
                                                                                                                     : modelData.core.isOutgoing
                                                                                                                         //: "Appel sortant"
                                                                                                                         ? qsTr("call_outgoing")
@@ -663,7 +746,7 @@ AbstractMainPage {
                                             }
                                             Text {
                                                 text: UtilsCpp.formatDate(modelData.core.date)
-                                                color: modelData.core.status === LinphoneEnums.CallStatus.Missed ? DefaultStyle.danger_500_main : DefaultStyle.main2_500_main
+                                                color: modelData.core.isMissed ? DefaultStyle.danger_500_main : DefaultStyle.main2_500_main
                                                 font {
                                                     pixelSize: Utils.getSizeWithScreenRatio(12)
                                                     weight: Utils.getSizeWithScreenRatio(300)

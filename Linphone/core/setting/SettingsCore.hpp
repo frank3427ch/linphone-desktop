@@ -153,6 +153,16 @@ public:
 	Q_INVOKABLE void setLastActiveTabIndex(int index);
 	Q_INVOKABLE int getLastActiveTabIndex();
 
+	// Single-view call history panel (docked on the right): open/closed, and when it was last
+	// opened (ms since epoch) so the edge strip can badge missed calls newer than that.
+	// App-local (QSettings), not linphonerc: pure UI state, never provisioned.
+	Q_PROPERTY(bool historyPanelOpen READ getHistoryPanelOpen WRITE setHistoryPanelOpen NOTIFY historyPanelOpenChanged)
+	Q_PROPERTY(double historyLastSeen READ getHistoryLastSeen WRITE setHistoryLastSeen NOTIFY historyLastSeenChanged)
+	bool getHistoryPanelOpen() const;
+	void setHistoryPanelOpen(bool open);
+	double getHistoryLastSeen() const;
+	void setHistoryLastSeen(double msSinceEpoch);
+
 	// Security. --------------------------------------------------------------------
 	bool getVfsEnabled() {
 		return mVfsEnabled;
@@ -472,6 +482,8 @@ signals:
 	void showVerifyDeviceConfirmationChanged(bool showVerifyDeviceConfirmation);
 
 	void lastActiveTabIndexChanged();
+	void historyPanelOpenChanged();
+	void historyLastSeenChanged();
 
 	void dndChanged();
 

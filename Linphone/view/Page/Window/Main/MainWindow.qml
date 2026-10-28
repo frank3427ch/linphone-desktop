@@ -16,16 +16,30 @@ AbstractWindow {
     property int initialWidth
     property int initialHeight
     Component.onCompleted: {
+        applyFixedWidth()
         initialWidth = width
         initialHeight = height
     }
 
 	color: DefaultStyle.grey_0
-	// Single-view: fixed width, vertically resizable only (spec §2)
-	width: Utils.getSizeWithScreenRatio(400)
+	// Single-view: fixed width, vertically resizable only (spec §2). The width grows by the
+	// docked call history card while it is open (SettingsCpp.historyPanelOpen, remembered).
+	readonly property int baseWidth: Utils.getSizeWithScreenRatio(400)
+	readonly property int historyPanelWidth: Utils.getSizeWithScreenRatio(280)
+	function applyFixedWidth() {
+		var w = baseWidth + (SettingsCpp.historyPanelOpen ? historyPanelWidth : 0)
+		// Order matters: the bounds must admit the new width before it is set
+		if (w > width) { maximumWidth = w; width = w; minimumWidth = w }
+		else { minimumWidth = w; width = w; maximumWidth = w }
+	}
+	Connections {
+		target: SettingsCpp
+		function onHistoryPanelOpenChanged() { mainWindow.applyFixedWidth() }
+	}
+	width: baseWidth
 	height: Utils.getSizeWithScreenRatio(720)
-	minimumWidth: Utils.getSizeWithScreenRatio(400)
-	maximumWidth: Utils.getSizeWithScreenRatio(400)
+	minimumWidth: baseWidth
+	maximumWidth: baseWidth
 	minimumHeight: Utils.getSizeWithScreenRatio(600)
 
 	signal callCreated()

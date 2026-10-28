@@ -4404,6 +4404,88 @@ Expiration : %1</translation>
     </message>
 </context>
 <context>
+    <name>HistoryPanel</name>
+    <message>
+        <location filename="../../view/Page/SingleView/HistoryPanel.qml" line="+20"/>
+        <source>singleview_history_kind_missed</source>
+        <extracomment>&quot;Missed&quot;</extracomment>
+        <translation>Missed</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>singleview_history_kind_incoming</source>
+        <extracomment>&quot;Incoming&quot;</extracomment>
+        <translation>Incoming</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>singleview_history_kind_outgoing</source>
+        <extracomment>&quot;Outgoing&quot;</extracomment>
+        <translation>Outgoing</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>singleview_history_kind_declined</source>
+        <extracomment>&quot;Declined&quot;</extracomment>
+        <translation>Declined</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>singleview_history_kind_unanswered</source>
+        <extracomment>&quot;No answer&quot;</extracomment>
+        <translation>No answer</translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>singleview_history_title</source>
+        <extracomment>&quot;Call history&quot;</extracomment>
+        <translation>Call history</translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <source>singleview_history_missed_count</source>
+        <extracomment>&quot;%1 missed&quot;</extracomment>
+        <translation>%1 missed</translation>
+    </message>
+    <message>
+        <location line="+66"/>
+        <source>singleview_history_call_back_accessible</source>
+        <extracomment>&quot;Call %1 back&quot;</extracomment>
+        <translation>Call %1 back</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>singleview_history_empty</source>
+        <extracomment>&quot;No calls yet&quot;</extracomment>
+        <translation>No calls yet</translation>
+    </message>
+</context>
+<context>
+    <name>HistoryStrip</name>
+    <message>
+        <location filename="../../view/Page/SingleView/HistoryStrip.qml" line="+41"/>
+        <source>singleview_history_strip_hide</source>
+        <extracomment>&quot;HIDE&quot; (vertical label on the history strip, panel open) &quot;HISTORY&quot; (vertical label on the history strip, panel closed)</extracomment>
+        <translation>HIDE</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>singleview_history_strip_show</source>
+        <translation>HISTORY</translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>singleview_history_hide_accessible</source>
+        <extracomment>&quot;Show call history&quot; / &quot;Hide call history&quot;</extracomment>
+        <translation>Hide call history</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>singleview_history_show_accessible</source>
+        <translation>Show call history</translation>
+    </message>
+</context>
+<context>
     <name>LdapSettingsLayout</name>
     <message>
         <location filename="../../view/Page/Layout/Settings/LdapSettingsLayout.qml" line="17"/>

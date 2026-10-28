@@ -50,6 +50,12 @@ One vertical column, five fixed regions, top to bottom:
 3. **Merge bar** — appears only when ≥2 calls exist and no conference is active. Becomes the conference card (participant list + per-participant remove + "End conference") once merged.
 4. **Dialer** — text field + 12-key pad + Call button. Behavior is modal on state: with a connected call focused, keys send DTMF; otherwise they compose a new destination. A small label indicates the current mode to avoid surprises.
 5. **Footer** — current audio device name, opens the device picker modal; mic level meter optional.
+6. **Call history card** (added 2026-10-28) — docked to the *right* of the column, toggled by a
+   narrow edge strip. Closed: the strip reads "HISTORY" and carries a red badge with the missed
+   calls not yet seen. Open: the window widens by 280 pt, the strip reads "HIDE", and the card
+   lists every call (placed, received, missed) newest first — missed rows in red — each with a
+   one-tap call-back button that dials through the same path as the keypad. Open/closed is
+   remembered across restarts (app-local setting, never provisioned). No filter, delete or search.
 
 Theme: hardcoded palette in the QML style singleton; monochrome SVG icons recolored to the palette; single font family. Remove all theme-switch plumbing rather than defaulting it.
 
@@ -112,6 +118,7 @@ Verify exact signatures against the SDK version pinned by the fork's submodule �
 - AC-5: DTMF sent from the pad is received by an IVR test number during an active call.
 - AC-6: No user path exists to any screen other than the main view and the device-picker modal.
 - AC-7: App survives 8-hour registration with keep-alives and re-registers automatically after network loss.
+- AC-8: A missed call shows as a red badge on the history strip; opening the card lists it first, and its call-back button places the call. The card stays open/closed across a restart.
 
 ## 12. Milestones
 

@@ -162,6 +162,31 @@ importer never reached the source tree; the committed mechanism is the
 `speed_dials` in `group_vars/all/main.yml`) renders those. The playbook removes
 the legacy `~/.npphone` directory.
 
+## Call history card (missed calls + call back)
+
+Docked on the right of the single view, behind the vertical **HISTORY** strip
+(`Linphone/view/Page/SingleView/HistoryStrip.qml`). Clicking the strip widens
+the window by 280 pt and shows `HistoryPanel.qml`: every call, newest first,
+missed rows in red, each with a green call-back button (dials through
+`UtilsCpp.createCall`, so auto-merge and SRTP apply exactly as for the keypad).
+**HIDE** on the strip collapses it again.
+
+- **Badge** — the strip shows the number of *missed* calls logged after the
+  card was last opened or closed (`SettingsCpp.historyLastSeen`). Opening or
+  closing the card clears it. Declined-by-agent calls are not counted; a caller
+  who hung up before answer is.
+- **Remembered state** — open/closed and the last-seen timestamp are app-local
+  QSettings keys (`singleViewHistoryPanelOpen`, `singleViewHistoryLastSeen`),
+  not linphonerc, so provisioning never touches them.
+- **Data** — the stock `CallHistoryProxy` (liblinphone call logs); nothing new is
+  stored. The list refreshes itself when a call ends.
+- **Row logic** (`historyHelper.js`: status → missed / incoming / outgoing /
+  declined / no answer, subtitle, badge count, window width) is unit-tested:
+
+```bash
+~/Qt/6.10.3/macos/bin/qmltestrunner -input tests/singleview
+```
+
 ## Reproducing the app and deployment from scratch
 
 Everything needed to rebuild `NPPhone.app` and push it to the fleet is in two

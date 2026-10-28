@@ -189,6 +189,9 @@ list(APPEND _LINPHONEAPP_QML_FILES
 	view/Page/SingleView/CallCard.qml
 	view/Page/SingleView/ConferenceCard.qml
 	view/Page/SingleView/DialerArea.qml
+	view/Page/SingleView/HistoryPanel.qml
+	view/Page/SingleView/HistoryStrip.qml
+	view/Page/SingleView/historyHelper.js
 	view/Page/SingleView/MainPanel.qml
 
 	view/Page/Window/AbstractWindow.qml

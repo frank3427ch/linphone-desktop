@@ -61,3 +61,5 @@ linphone62*.log
 *.cxxflags
 *.files
 *.includes
+# brainstorming mockups (superpowers visual companion)
+.superpowers/

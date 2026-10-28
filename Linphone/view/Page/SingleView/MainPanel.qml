@@ -5,6 +5,7 @@ import Linphone
 import SettingsCpp
 import 'qrc:/qt/qml/Linphone/view/Control/Tool/Helper/utils.js' as Utils
 import 'qrc:/qt/qml/Linphone/view/Style/buttonStyle.js' as ButtonStyle
+import 'qrc:/qt/qml/Linphone/view/Page/SingleView/historyHelper.js' as History
 
 // The application's single view (spec §5): header / call stack / merge bar / dialer / footer.
 Item {
@@ -38,6 +39,38 @@ Item {
 	property CallGui conferenceCall: null
 	readonly property bool haveConference: conferenceCall !== null
 	property alias dialedText: dialerArea.enteredText
+
+	// Call history (docked card on the right, toggled by the edge strip). The proxy lives here so
+	// the missed-call badge counts while the card is hidden. "Seen" = the moment the card was
+	// last opened or closed (SettingsCpp.historyLastSeen, app-local); missed logs newer than that
+	// are badged on the strip.
+	CallHistoryProxy { id: history }
+	readonly property bool historyOpen: SettingsCpp.historyPanelOpen
+	property int missedCount: 0
+	function recountMissed() {
+		var entries = []
+		for (var i = 0; i < history.count; ++i) {
+			var gui = history.getAt(i)
+			if (!gui || !gui.core) continue
+			entries.push({ kind: History.classify(gui.core.status, gui.core.isOutgoing, LinphoneEnums.CallStatus),
+						   dateMs: gui.core.date.getTime() })
+		}
+		missedCount = History.missedSince(entries, SettingsCpp.historyLastSeen)
+	}
+	function toggleHistory() {
+		SettingsCpp.historyLastSeen = Date.now()
+		SettingsCpp.historyPanelOpen = !SettingsCpp.historyPanelOpen
+	}
+	Connections {
+		target: history
+		function onCountChanged() { mainPanel.recountMissed() }
+		function onModelReset() { mainPanel.recountMissed() }
+	}
+	Connections {
+		target: SettingsCpp
+		function onHistoryLastSeenChanged() { mainPanel.recountMissed() }
+	}
+	Component.onCompleted: recountMissed()
 
 	// Re-derive the tracked conference leg from the live rows. CallList repopulates via
 	// model resets, so per-delegate bookkeeping goes stale (a destroyed delegate can't
@@ -112,7 +145,11 @@ Item {
 	}
 
 	ColumnLayout {
-		anchors.fill: parent
+		// Fixed 400-wide column; the history card and its strip dock to the right of it
+		anchors.left: parent.left
+		anchors.top: parent.top
+		anchors.bottom: parent.bottom
+		anchors.right: historyPanel.left
 		spacing: 0
 
 		// REGION 1: header / status strip
@@ -282,6 +319,28 @@ Item {
 				}
 			}
 		}
+	}
+
+	// REGION 6: call history — docked card (spec addendum 2026-10-28) + right-edge strip
+	HistoryPanel {
+		id: historyPanel
+		anchors.right: historyStrip.left
+		anchors.top: parent.top
+		anchors.bottom: parent.bottom
+		width: mainPanel.historyOpen ? Utils.getSizeWithScreenRatio(280) : 0
+		visible: mainPanel.historyOpen
+		model: history
+		missedCount: mainPanel.missedCount
+	}
+	HistoryStrip {
+		id: historyStrip
+		anchors.right: parent.right
+		anchors.top: parent.top
+		anchors.bottom: parent.bottom
+		width: implicitWidth
+		open: mainPanel.historyOpen
+		missedCount: mainPanel.missedCount
+		onToggled: mainPanel.toggleHistory()
 	}
 
 	Control.Popup {

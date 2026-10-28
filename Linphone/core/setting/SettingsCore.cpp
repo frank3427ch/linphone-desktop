@@ -1238,6 +1238,28 @@ int SettingsCore::getLastActiveTabIndex() {
 	return mAppSettings.value("lastActiveTabIndex", 1).toInt();
 }
 
+bool SettingsCore::getHistoryPanelOpen() const {
+	return mAppSettings.value("singleViewHistoryPanelOpen", false).toBool();
+}
+
+void SettingsCore::setHistoryPanelOpen(bool open) {
+	if (getHistoryPanelOpen() == open) return;
+	mAppSettings.setValue("singleViewHistoryPanelOpen", open);
+	mAppSettings.sync();
+	emit historyPanelOpenChanged();
+}
+
+double SettingsCore::getHistoryLastSeen() const {
+	return mAppSettings.value("singleViewHistoryLastSeen", 0.0).toDouble();
+}
+
+void SettingsCore::setHistoryLastSeen(double msSinceEpoch) {
+	if (getHistoryLastSeen() == msSinceEpoch) return;
+	mAppSettings.setValue("singleViewHistoryLastSeen", msSinceEpoch);
+	mAppSettings.sync();
+	emit historyLastSeenChanged();
+}
+
 void SettingsCore::setDisplayDeviceCheckConfirmation(bool display) {
 	if (getDisplayDeviceCheckConfirmation() != display) {
 		mAppSettings.setValue("displayDeviceCheckConfirmation", display);

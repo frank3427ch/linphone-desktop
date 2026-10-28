@@ -1,7 +1,7 @@
 # NP Phone — Manual Test: Interpreter-First Auto-Merge
 
-**Build under test:** NP Phone `6.3.0-alpha.77+6300d8574` (linphone-desktop branch
-`simple`), deployed 2026-08-31 to pilot stations **np-025** (ext 1525n),
+**Build under test:** NP Phone `6.3.0-alpha.86+c0c357707` (linphone-desktop branch
+`simple`), built 2026-10-28 for pilot stations **np-025** (ext 1525n),
 **r-np-007** (ext 1607n), **np-050** (ext 1550n) and **np-051** (ext 1551n).
 
 Fixes since the first pilot build (`.63`):
@@ -22,6 +22,16 @@ Fixes since the first pilot build (`.63`):
 - `.77` — RFC 2833 DTMF events lengthened from 100 ms to 200 ms (SDK patch):
   Propio intermittently ignored the shorter tones even though every press was
   sent correctly (np-025 log analysis, 2026-08-31). Re-run section 7b.
+- `.84` — six fixes picked from upstream Linphone (2026-10-27): the audio
+  device list no longer blinks / loops while a call is up, playback and
+  capture volume changes in the device picker apply immediately, and the call
+  timer starts correctly on a call that was already connected when its card
+  appeared. Re-run section 8 and check the device picker (0.1) once.
+- `.86` — **Call history card** (section 7d): a vertical **HISTORY** strip on
+  the right edge opens a docked list of every call, missed calls in red, with a
+  one-tap call-back button. The strip shows a red badge with the number of
+  missed calls not yet looked at. The window widens while the card is open
+  and remembers open/closed across relaunches.
 
 **Feature under test:** when a call is already up and the agent dials another
 number, the new leg is conferenced automatically while it is still ringing
@@ -42,7 +52,7 @@ expected result is a Fail — note exactly what you saw.
 | 0.1a | **Microphone prompt.** On the first launch of every new build macOS asks *"NP Phone would like to access the microphone"*. Click **Allow**. | Prompt accepted. If it was ever answered *Don't Allow*, the far end hears **silence** on every call (voicemail says "you have not left a message") — fix in *System Settings → Privacy & Security → Microphone → NP Phone: on*, or re-run the deploy (`--tags linphone`), which resets a denied grant so the prompt reappears. |  |
 | 0.2 | Check the top of the panel. | Registration is **not** shown as failed (no red "registration failed" text). |  |
 | 0.3 | Look above the number pad. | Two speed-dial buttons: **Propio** and **Patient Support**. (If they are missing, stop — provisioning did not land; see "Troubleshooting".) |  |
-| 0.4 | Confirm the build. In Finder: `/Applications/NPPhone.app` → right-click → *Get Info* → Version. | `6.3.0-alpha.77+6300d8574` |  |
+| 0.4 | Confirm the build. In Finder: `/Applications/NPPhone.app` → right-click → *Get Info* → Version. | `6.3.0-alpha.86+c0c357707` |  |
 | 0.5 | Have ready: (a) a headset on the station, (b) a **test "patient" phone** — a mobile with voicemail enabled whose number you know, (c) a second person or a second phone to act as an **incoming caller** for test 6. | — |  |
 
 > The "interpreter" leg in these tests is the real Propio line (speed dial 1,
@@ -144,6 +154,27 @@ number is typed in the dial field, and while that leg is still ringing.
 | 7c.4 | Press **End conference**. | Empty dialer. The patient ↔ colleague call continues on its own. |  |
 | 7c.5 | Single-call regression: dial the test patient alone (no interpreter), answer, type a number, press Transfer on the **call card**. | Same blind transfer as before this change. |  |
 
+## 7d. Call history card — missed calls and call back
+
+Requires build `6.3.0-alpha.86` or later. A narrow navy strip reading
+**HISTORY** sits on the right edge of the window. Use the second phone as the
+"caller" throughout.
+
+| # | Step | Expected | Pass/Fail |
+|---|---|---|---|
+| 7d.1 | With no calls up, look at the right edge of the window. | A vertical **HISTORY** strip. If any calls were missed since the station last opened the card, a small red badge with the count sits above the word. |  |
+| 7d.2 | Click the strip. | The window **widens to the right** (the dialer does not move) and a **Call history** card appears beside it. The strip now reads **HIDE** and has no badge. The card lists previous calls, newest at the top: name or number, an arrow, the kind (Incoming / Outgoing / Missed / Declined / No answer), the time (today) or date, and the length of answered calls. Missed rows are tinted red. A **green phone button** sits on every row. If the station has never placed a call the card reads *No calls yet*. |  |
+| 7d.3 | Click **HIDE**. | Card disappears, window returns to its normal width, strip reads **HISTORY** again. |  |
+| 7d.4 | From the second phone, **call the station's extension**. Let it ring; **do not answer**; hang up from the caller. | The incoming card disappears. The HISTORY strip now shows a red badge **1**. |  |
+| 7d.5 | Repeat 7d.4 once more. | Badge shows **2**. |  |
+| 7d.6 | Click **HISTORY**. | Card opens; the badge on the strip is gone. The two missed calls are the **top two rows**, red, kind **Missed**, with the caller's number (or contact name) and the time. The card header shows **2 missed**. |  |
+| 7d.7 | Click the **green phone button** on the top missed row. | The caller's phone rings. A normal call card appears in the call stack (mute / hold / transfer / hang-up) — the card stays open while the call is up. Answer, confirm two-way audio, hang up. |  |
+| 7d.8 | Look at the top of the list. | The call you just placed is now the first row: kind **Outgoing**, with its length. |  |
+| 7d.9 | **Propio** speed dial → Connected → click a row's phone button in the history card. | Same as dialing from the keypad while a call is up: the new leg is **auto-merged** into a conference with Propio (section 1 behaviour). End all calls. |  |
+| 7d.10 | Leave the card **open**. Quit NP Phone and relaunch. | The app comes back with the card **still open** (wide window). Click HIDE, quit, relaunch: comes back **closed**. |  |
+| 7d.11 | Card closed. From the second phone call the station and **Decline** it on the station. Open the card. | The declined call is listed as **Declined**, not red, and it did **not** add to the badge count. |  |
+| 7d.12 | Card open. Make one more missed call from the second phone. Then click HIDE. | No badge appears — a missed call that arrived while the card was open counts as seen. |  |
+
 ## 8. Regression — single calls still behave normally
 
 | # | Step | Expected | Pass/Fail |
@@ -186,7 +217,7 @@ Only if a site needs the old behaviour; requires editing the station config.
 
 ## Sign-off
 
-| Station | Tester | Date | Tests 1–8 (incl. 7b) all Pass? | Notes |
+| Station | Tester | Date | Tests 1–8 (incl. 7b, 7c, 7d) all Pass? | Notes |
 |---|---|---|---|---|
 | np-025 |  |  |  |  |
 | r-np-007 |  |  |  |  |

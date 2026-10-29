@@ -23,6 +23,13 @@ lime_update_threshold=86400
 
 [misc]
 aggregate_imdn=1
+# Send real media during early media (183 Session Progress). Off, liblinphone marks an
+# outgoing leg muted until it is answered and, when that leg is inside a conference, leaves
+# its audio endpoint disconnected from the mixer (MS2AudioStream::render, "audioMixer && !mMuted").
+# The interpreter-first auto-merge puts the patient leg in the conference before the PBX's
+# 183 arrives, so the ringback / voicemail greeting carried as early media was heard by nobody.
+# With this on the leg joins the mixer at the 183 and everyone hears it (test script 1.4, 2.3).
+real_early_media=1
 enable_basic_to_client_group_chat_room_migration=0
 enable_simple_group_chat_message_state=0
 notify_each_friend_individually_when_presence_received=0

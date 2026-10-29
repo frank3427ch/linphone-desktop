@@ -142,7 +142,12 @@ legs immediately, while the new leg is still ringing: `MainPanel.qml`
 `autoMerge()` watches the call list and calls `lMergeAll()` as soon as a
 second, *outgoing* leg appears in an `Outgoing*` state. liblinphone attaches a
 ringing leg to the conference mixer and it becomes audible the moment it goes
-`Connected`, so no click is needed at answer time. Effects:
+`Connected`, so no click is needed at answer time. The PBX answers every
+outgoing INVITE with 183 Session Progress carrying early media (the ringback
+is audio over RTP, not a local tone), and liblinphone only connects an
+early-media leg to the mixer when early-media *sending* is enabled, so the
+factory config also sets `[misc] real_early_media=1`; without it the merged
+conference is silent until the patient (or voicemail) answers. Effects:
 
 - The interpreter is never put on hold; they hear the patient's ringback,
   then the answer or voicemail greeting.

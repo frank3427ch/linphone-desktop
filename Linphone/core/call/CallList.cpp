@@ -122,6 +122,18 @@ void CallList::setSelf(QSharedPointer<CallList> me) {
 				return;
 			} else {
 				conference->addParticipants(currentCalls);
+				// Single-view auto-merge: the legs are merged while the first one is Paused and the new
+				// one is still ringing. liblinphone adds the local participant (the agent's headset) to
+				// the mixer only on a leg's Connected transition, which a resumed leg never goes
+				// through, and its own enter() inside addParticipant fails while the ringing leg is
+				// not yet in the conference (it locks the sound resources). Net effect on the pilot
+				// stations: the other party heard the new leg's ringback, the agent heard nothing until
+				// the leg was answered. Enter now: both legs are in the conference, so neither locks.
+				if (!conference->isIn()) {
+					if (conference->enter() != 0)
+						lWarning() << log().arg("Could not enter the conference right after merging");
+					else lInfo() << log().arg("Entered the conference right after merging");
+				}
 			}
 		});
 	});

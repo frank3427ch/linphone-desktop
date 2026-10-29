@@ -147,7 +147,12 @@ outgoing INVITE with 183 Session Progress carrying early media (the ringback
 is audio over RTP, not a local tone), and liblinphone only connects an
 early-media leg to the mixer when early-media *sending* is enabled, so the
 factory config also sets `[misc] real_early_media=1`; without it the merged
-conference is silent until the patient (or voicemail) answers. Effects:
+conference is silent until the patient (or voicemail) answers. The
+merge also calls `enter()` on the new conference (`CallList::lMergeAll`):
+liblinphone adds the local participant to the mixer only on a leg's
+`Connected` transition, which a resumed (previously paused) leg never goes
+through, so without it the agent heard nothing until the new leg answered.
+Effects:
 
 - The interpreter is never put on hold; they hear the patient's ringback,
   then the answer or voicemail greeting.

@@ -1,1 +1,1 @@
-"NSLocalNetworkUsageDescription" = "@APPLICATION_NAME@ utilise le réseau local pour échanger l’audio et la vidéo directement avec les appareils du même réseau pendant les appels.";
+"NSLocalNetworkUsageDescription" = "@APPLICATION_NAME@ utilise le réseau local pour échanger l’audio directement avec les appareils du même réseau pendant les appels.";

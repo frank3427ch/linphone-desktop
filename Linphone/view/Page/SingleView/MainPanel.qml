@@ -360,6 +360,9 @@ Item {
 			Flickable {
 				Layout.fillWidth: true
 				Layout.preferredHeight: Math.min(multimediaSettings.implicitHeight, mainPanel.height - Utils.getSizeWithScreenRatio(200))
+				// Linphone's Flickable binds contentWidth to its children's width; pin it so the
+				// settings column (width: parent.width) gets the full popup width.
+				contentWidth: width
 				contentHeight: multimediaSettings.implicitHeight
 				clip: true
 				MultimediaSettings {

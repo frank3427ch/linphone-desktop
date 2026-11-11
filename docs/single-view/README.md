@@ -256,8 +256,9 @@ persists. (Gatekeeper still needs the quarantine xattr cleared — the playbook
 does that — since the cert is not Apple-issued.)
 
 The current certificate is **"NP Phone Signing"** (CN, O=Catapult Health,
-SHA-1 `C171C4EF7F38B72078966AB763A0FD5F26C9AB18`, valid 10 years from
-2026-08-28); its public half is committed as
+SHA-1 `27B2C95D7B0D5F3EBA3F186843BDA66B158E5EC6`, valid 10 years from
+2026-11-11; it replaced the 2026-08-28 certificate `C171C4EF…`, whose keychain
+could no longer be unlocked); its public half is committed as
 `cmake/install/macos/npphone-signing-cert.pem`. The private key lives only in
 the build Mac's keychain `~/Library/Keychains/npphone-signing.keychain-db`
 (password `npphone-signing`; it protects nothing but this self-signed key).
@@ -318,7 +319,7 @@ cmake --build build --parallel 10
 Signing runs in `cmake/install/sign_macos_app.sh` (`--timestamp --options
 runtime,library`, entitlements from `cmake/install/macos/entitlements.xml`).
 Check the result with `codesign -d -r- build/OUTPUT/macos/NPPhone.app` — the
-designated requirement must show `certificate root = H"c171c4ef…"`.
+designated requirement must show `certificate root = H"27b2c95d…"`.
 
 - First build compiles the whole SDK (~2 h); later builds are incremental
   (`cmake --build build --parallel 10`).
